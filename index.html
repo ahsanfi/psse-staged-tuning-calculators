@@ -1,0 +1,1049 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Staged Tuning Calculators</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #111827; /* bg-gray-900 */
+        }
+        .card {
+            background-color: #1F2937; /* bg-gray-800 */
+            border-radius: 0.75rem; /* rounded-xl */
+            border: 1px solid #374151; /* border-gray-700 */
+        }
+        .input-field {
+            background-color: #374151; /* bg-gray-700 */
+            border: 1px solid #4B5563; /* border-gray-600 */
+            color: #F9FAFB; /* text-gray-50 */
+            border-radius: 0.5rem; /* rounded-lg */
+            padding: 0.75rem; /* p-3 */
+            width: 100%;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .input-field:focus {
+            outline: none;
+            border-color: #3B82F6; /* focus:border-blue-500 */
+            box-shadow: 0 0 0 2px #1E40AF; /* focus:ring-blue-500/50 */
+        }
+        .input-field[readonly] {
+            background-color: #4B5563; /* bg-gray-600 */
+            cursor: not-allowed;
+        }
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            transition: all 0.2s;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        .btn-primary {
+            background-color: #2563EB; /* bg-blue-600 */
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: #1D4ED8; /* hover:bg-blue-700 */
+        }
+        .btn-secondary {
+            background-color: #4B5563; /* bg-gray-600 */
+            color: white;
+        }
+        .btn-secondary:hover {
+            background-color: #6B7280; /* hover:bg-gray-500 */
+        }
+        .step-header {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 1rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid #374151;
+        }
+        .result-box {
+             background-color: #111827;
+             padding: 1rem;
+             border-radius: 0.5rem;
+             border: 1px solid #4B5563;
+        }
+        .tab-btn {
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 0.5rem;
+            border: 2px solid transparent;
+            color: #9CA3AF; /* text-gray-400 */
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .tab-btn:hover {
+            background-color: #374151; /* hover:bg-gray-700 */
+            color: #F9FAFB; /* hover:text-gray-50 */
+        }
+        .tab-btn.active {
+            color: #3B82F6; /* text-blue-500 */
+            border-bottom-color: #3B82F6;
+            background-color: #1F2937;
+        }
+        .calculator-content {
+            display: none;
+        }
+        .calculator-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body class="text-gray-200">
+
+    <div class="container mx-auto max-w-6xl px-4 py-8 sm:py-12">
+        <header class="text-center mb-10">
+            <h1 class="text-3xl sm:text-4xl font-bold text-white tracking-tight">Staged Tuning Calculators</h1>
+            <p class="mt-3 text-lg text-gray-400 max-w-3xl mx-auto">A collection of tools for generator tuning. Select a calculator below.</p>
+        </header>
+
+        <!-- TABS -->
+        <div class="mb-8 border-b border-gray-700">
+            <nav class="flex justify-center -mb-px space-x-4" aria-label="Tabs">
+                <button class="tab-btn active" id="tab-dual">Dual Generator</button>
+                <button class="tab-btn" id="tab-single">Single Generator</button>
+            </nav>
+        </div>
+
+        <!-- DUAL GENERATOR CALCULATOR CONTENT -->
+        <div id="dualGenCalc" class="calculator-content active">
+            <main class="space-y-10">
+                <div class="card p-6 border-2 border-indigo-500">
+                    <h2 class="step-header text-indigo-400">Global Targets</h2>
+                    <p class="text-sm text-gray-400 mb-4">Enter your final POI targets here. They will be automatically used in all steps below.</p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="global_p_target" class="block text-sm font-medium text-gray-300 mb-1">🎯 Final Target POI P Output (MW)</label>
+                            <input type="number" id="global_p_target" class="input-field" placeholder="e.g., -216.0000">
+                        </div>
+                        <div>
+                            <label for="global_q_target" class="block text-sm font-medium text-gray-300 mb-1">🎯 Final Target POI Q Output (Mvar)</label>
+                            <input type="number" id="global_q_target" class="input-field" placeholder="e.g., 0.0000">
+                        </div>
+                    </div>
+                </div>
+    
+                <div class="card p-6">
+                    <h2 class="step-header text-cyan-400">Generator Load Ratio</h2>
+                    <p class="text-sm text-gray-400 mb-4">Set the load distribution between the two generators. The total must be 100%.</p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
+                        <div>
+                            <label for="ratio_g1" class="block text-sm font-medium text-gray-300 mb-1">Generator 1 Share (%)</label>
+                            <input type="number" id="ratio_g1" class="input-field" value="50">
+                        </div>
+                        <div>
+                            <label for="ratio_g2" class="block text-sm font-medium text-gray-300 mb-1">Generator 2 Share (%)</label>
+                            <input type="number" id="ratio_g2" class="input-field" value="50" readonly>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="text-center">
+                    <button id="resetAllBtn" class="btn bg-red-600 hover:bg-red-700 text-white">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-counterclockwise" viewBox="0 0 16 16">
+                            <path fill-rule="evenodd" d="M8 3a5 5 0 1 1-4.546 2.914.5.5 0 0 0-.908-.417A6 6 0 1 0 8 2z"/>
+                            <path d="M8 4.466V.534a.25.25 0 0 0-.41-.192L5.23 2.308a.25.25 0 0 0 0 .384l2.36 1.966A.25.25 0 0 0 8 4.466"/>
+                        </svg>
+                        <span>Reset All</span>
+                    </button>
+                </div>
+                
+                <!-- STEP 1: PGen TUNING -->
+                <div class="card p-6">
+                    <h2 class="step-header">Step 1: Initial PGen Estimation</h2>
+                    <p class="text-sm text-gray-400 mb-6">Goal: Find the `PGen Input` for both generators based on the defined ratio. Hold `VSched Input` constant.</p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="space-y-6">
+                            <div>
+                                <label for="p_out_target_s1" class="block text-sm font-medium text-gray-300 mb-2">🎯 **Target POI P Output (MW)**</label>
+                                <input type="number" id="p_out_target_s1" class="input-field" placeholder="Set in Global Targets" readonly>
+                            </div>
+                            <div class="space-y-4">
+                                <h3 class="font-semibold text-white">Data from 2 PGen Simulations:</h3>
+                                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                                    <div class="bg-gray-900 p-4 rounded-lg border border-gray-700">
+                                        <p class="font-medium text-green-400 mb-2">Simulation A</p>
+                                        <label class="text-xs text-gray-400">PGen 1 In</label><input type="number" id="p_in_A1" class="input-field mt-1" placeholder="PGen 1">
+                                        <label class="text-xs text-gray-400 mt-2 block">PGen 2 In</label><input type="number" id="p_in_A2" class="input-field mt-1" placeholder="Calculated" readonly>
+                                        <label class="text-xs text-gray-400 mt-2 block">VSched In (Both)</label><input type="number" class="input-field mt-1" placeholder="e.g., 1.000" value="1.000">
+                                        <label class="text-xs text-gray-400 mt-2 block">POI P Output (MW)</label><input type="number" id="p_out_A" class="input-field mt-1" placeholder="Total P at POI">
+                                    </div>
+                                    <div class="bg-gray-900 p-4 rounded-lg border border-gray-700">
+                                        <p class="font-medium text-green-400 mb-2">Simulation B</p>
+                                        <label class="text-xs text-gray-400">PGen 1 In</label><input type="number" id="p_in_B1" class="input-field mt-1" placeholder="PGen 1">
+                                        <label class="text-xs text-gray-400 mt-2 block">PGen 2 In</label><input type="number" id="p_in_B2" class="input-field mt-1" placeholder="Calculated" readonly>
+                                        <label class="text-xs text-gray-400 mt-2 block">VSched In (Both)</label><input type="number" class="input-field mt-1" placeholder="e.g., 1.000" value="1.000">
+                                        <label class="text-xs text-gray-400 mt-2 block">POI P Output (MW)</label><input type="number" id="p_out_B" class="input-field mt-1" placeholder="Total P at POI">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex flex-col">
+                             <div class="space-y-4">
+                                <button id="calculatePBtn" class="btn btn-primary w-full">Calculate Estimated PGen Input</button>
+                                <button id="resetPBtn" class="btn btn-secondary w-full">Reset</button>
+                            </div>
+                            <div id="pResultCard" class="mt-6 p-6 flex-grow flex flex-col justify-center items-center bg-gray-900 rounded-lg border border-gray-700 hidden">
+                                 <h3 class="font-semibold text-white mb-3 text-center">✅ Est. PGen Inputs:</h3>
+                                 <div class="flex flex-col sm:flex-row gap-4">
+                                    <div class="result-box text-center p-4">
+                                        <p class="text-sm font-medium text-gray-400">Gen 1 Input</p>
+                                        <p id="p_in_result_1" class="text-2xl font-bold text-green-400">-</p>
+                                        <p class="text-xs text-gray-500">MW</p>
+                                    </div>
+                                    <div class="result-box text-center p-4">
+                                        <p class="text-sm font-medium text-gray-400">Gen 2 Input</p>
+                                        <p id="p_in_result_2" class="text-2xl font-bold text-green-400">-</p>
+                                        <p class="text-xs text-gray-500">MW</p>
+                                    </div>
+                                 </div>
+                                 <p id="pErrorMessage" class="mt-4 text-red-400 text-sm font-medium text-center"></p>
+                                 <div id="pNextStep" class="mt-4 w-full text-center text-sm text-gray-400 hidden">
+                                    <button id="useForStep2Btn" class="btn btn-primary w-full text-sm">➡️ Use these PGen values for Step 2</button>
+                                 </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+    
+                <!-- STEP 2: QGen TUNING -->
+                <div class="card p-6">
+                    <h2 class="step-header">Step 2: Initial VSched Estimation</h2>
+                    <p class="text-sm text-gray-400 mb-6">Use the `PGen Inputs` from Step 1. Find the symmetrical `VSched Input` to meet the `POI Q Output` target.</p>
+                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="space-y-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-300 mb-2">⚡ **PGen Inputs (constant, from Step 1)**</label>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <input type="number" id="p_in_1_s2" class="input-field" placeholder="PGen 1" readonly>
+                                    <input type="number" id="p_in_2_s2" class="input-field" placeholder="PGen 2" readonly>
+                                </div>
+                            </div>
+                            <div>
+                                <label for="q_out_target_s2" class="block text-sm font-medium text-gray-300 mb-2">🎯 **Target POI Q Output (Mvar)**</label>
+                                <input type="number" id="q_out_target_s2" class="input-field" placeholder="Set in Global Targets" readonly>
+                            </div>
+                             <div class="space-y-4 md:col-span-2">
+                                 <div class="flex items-center mb-4">
+                                    <input id="symm_v_s2" type="checkbox" checked class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                                    <label for="symm_v_s2" class="ml-2 block text-sm text-gray-300">Symmetrical VSched Inputs</label>
+                                </div>
+                                <h3 class="font-semibold text-white">Data from 2 VSched Simulations:</h3>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div class="bg-gray-900 p-4 rounded-lg border border-gray-700">
+                                        <p class="font-medium text-yellow-400 mb-2">Simulation C</p>
+                                        <label class="text-xs text-gray-400">VSched 1 In</label><input type="number" id="v_in_C1" class="input-field mt-1" placeholder="VSched 1">
+                                        <label class="text-xs text-gray-400 mt-2 block">VSched 2 In</label><input type="number" id="v_in_C2" class="input-field mt-1" placeholder="VSched 2" readonly>
+                                        <label class="text-xs text-gray-400 mt-2 block">POI Q Output (Mvar)</label><input type="number" id="q_out_C" class="input-field mt-1" placeholder="Total Q at POI">
+                                    </div>
+                                    <div class="bg-gray-900 p-4 rounded-lg border border-gray-700">
+                                        <p class="font-medium text-yellow-400 mb-2">Simulation D</p>
+                                        <label class="text-xs text-gray-400">VSched 1 In</label><input type="number" id="v_in_D1" class="input-field mt-1" placeholder="VSched 1">
+                                        <label class="text-xs text-gray-400 mt-2 block">VSched 2 In</label><input type="number" id="v_in_D2" class="input-field mt-1" placeholder="VSched 2" readonly>
+                                        <label class="text-xs text-gray-400 mt-2 block">POI Q Output (Mvar)</label><input type="number" id="q_out_D" class="input-field mt-1" placeholder="Total Q at POI">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex flex-col">
+                             <div class="space-y-4">
+                                <button id="calculateQBtn" class="btn btn-primary w-full">Calculate Estimated VSched Input</button>
+                                 <button id="resetQBtn" class="btn btn-secondary w-full">Reset</button>
+                            </div>
+                            <div id="qResultCard" class="mt-6 p-6 flex-grow flex flex-col justify-center items-center bg-gray-900 rounded-lg border border-gray-700 hidden">
+                                 <h3 class="font-semibold text-white mb-3 text-center">✅ Est. Symmetrical VSched Input (per Gen):</h3>
+                                 <div class="result-box text-center">
+                                    <p id="v_in_result" class="text-3xl font-bold text-yellow-400">-</p>
+                                    <p class="text-sm text-gray-500">pu</p>
+                                 </div>
+                                 <p id="qErrorMessage" class="mt-4 text-red-400 text-sm font-medium text-center"></p>
+                                 <button id="useForStep3Btn" class="btn btn-primary mt-4 w-full text-sm bg-indigo-600 hover:bg-indigo-700">Use these values for Step 3</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- STEP 3: FINAL CORRECTION -->
+                <div class="card p-6 border-2 border-blue-500">
+                    <h2 class="step-header text-blue-400">Step 3: Final Correction</h2>
+                    <p class="text-sm text-gray-400 mb-6">Calculates the final PGen and VSched inputs for both generators to precisely match both P and Q targets, accounting for coupling effects.</p>
+                    
+                    <div class="mb-6">
+                        <h3 class="font-semibold text-white mb-2">🎯 Your Final POI Targets</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-gray-900 p-4 rounded-lg">
+                            <div>
+                                <label for="p_out_target_s3" class="block text-sm font-medium text-gray-300 mb-1">Target POI P Output (MW)</label>
+                                <input type="number" id="p_out_target_s3" class="input-field" placeholder="Set in Global Targets" readonly>
+                            </div>
+                            <div>
+                                <label for="q_out_target_s3" class="block text-sm font-medium text-gray-300 mb-1">Target POI Q Output (Mvar)</label>
+                                <input type="number" id="q_out_target_s3" class="input-field" placeholder="Set in Global Targets" readonly>
+                            </div>
+                        </div>
+                    </div>
+    
+                    <div>
+                         <h3 class="font-semibold text-white mb-2">Data from 3 Correction Simulations:</h3>
+                         <p class="text-xs text-gray-400 mb-4">Start from your last condition (results from Steps 1 & 2), then slightly change the PGen and VSched inputs to get sensitivity data.</p>
+                         <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                            <div class="bg-gray-900 p-3 rounded-lg border border-gray-700">
+                                 <p class="font-medium text-blue-400 mb-2">Sim E (Current Condition)</p>
+                                 <label class="text-xs">PGen 1 In</label><input type="number" id="p_in_E1" class="input-field my-1" placeholder="Current PGen 1 In">
+                                 <label class="text-xs">PGen 2 In</label><input type="number" id="p_in_E2" class="input-field my-1" placeholder="Calculated" readonly>
+                                 <label class="text-xs">Symmetrical VSched In</label><input type="number" id="v_in_E" class="input-field my-1" placeholder="Current VSched In">
+                                 <label class="text-xs">POI P Out</label><input type="number" id="p_out_E" class="input-field my-1" placeholder="Current POI P Out">
+                                 <label class="text-xs">POI Q Out</label><input type="number" id="q_out_E" class="input-field my-1" placeholder="Current POI Q Out">
+                            </div>
+                            <div class="bg-gray-900 p-3 rounded-lg border border-gray-700">
+                                 <p class="font-medium text-blue-400 mb-2">Sim F (Change PGen In)</p>
+                                 <label class="text-xs">PGen 1 In</label><input type="number" id="p_in_F1" class="input-field my-1" placeholder="PGen 1 In + change">
+                                 <label class="text-xs">PGen 2 In</label><input type="number" id="p_in_F2" class="input-field my-1" placeholder="Calculated" readonly>
+                                 <label class="text-xs">POI P Out</label><input type="number" id="p_out_F" class="input-field my-1" placeholder="Resulting POI P">
+                                 <label class="text-xs">POI Q Out</label><input type="number" id="q_out_F" class="input-field my-1" placeholder="Resulting POI Q">
+                            </div>
+                             <div class="bg-gray-900 p-3 rounded-lg border border-gray-700">
+                                 <p class="font-medium text-blue-400 mb-2">Sim G (Change VSched In)</p>
+                                 <label class="text-xs">Symmetrical VSched In</label><input type="number" id="v_in_G" class="input-field my-1" placeholder="VSched In + change">
+                                 <label class="text-xs">POI P Out</label><input type="number" id="p_out_G" class="input-field my-1" placeholder="Resulting POI P">
+                                 <label class="text-xs">POI Q Out</label><input type="number" id="q_out_G" class="input-field my-1" placeholder="Resulting POI Q">
+                            </div>
+                         </div>
+                    </div>
+                    
+                    <div class="mt-6 flex flex-col md:flex-row gap-4">
+                         <button id="calculateFinalBtn" class="btn btn-primary w-full bg-blue-600 hover:bg-blue-700">Calculate Final Correction</button>
+                         <button id="resetFinalBtn" class="btn btn-secondary w-full">Reset</button>
+                    </div>
+    
+                    <div id="finalResultCard" class="mt-6 p-6 bg-gray-900 rounded-lg border border-gray-700 hidden">
+                        <h3 class="font-semibold text-white mb-4 text-center">🏆 Recommended Final Inputs:</h3>
+                        <div class="flex flex-col sm:flex-row justify-center items-center gap-6">
+                            <div class="result-box text-center">
+                                <p class="text-sm font-medium text-gray-400">Final PGen 1 Input</p>
+                                <p id="p_in_final_result_1" class="text-3xl font-bold text-green-400 mt-1">-</p>
+                                <p class="text-sm text-gray-500">MW</p>
+                            </div>
+                             <div class="result-box text-center">
+                                <p class="text-sm font-medium text-gray-400">Final PGen 2 Input</p>
+                                <p id="p_in_final_result_2" class="text-3xl font-bold text-green-400 mt-1">-</p>
+                                <p class="text-sm text-gray-500">MW</p>
+                            </div>
+                            <div class="result-box text-center">
+                                <p class="text-sm font-medium text-gray-400">Final VSched Input</p>
+                                <p id="v_in_final_result" class="text-3xl font-bold text-yellow-400 mt-1">-</p>
+                                <p class="text-sm text-gray-500">pu</p>
+                            </div>
+                        </div>
+                        <p id="finalErrorMessage" class="mt-4 text-red-400 text-sm font-medium text-center"></p>
+                    </div>
+                </div>
+    
+                <!-- UTILITY: Qmax Calculator -->
+                <div class="card p-6">
+                    <h2 class="step-header">Utility: Qmax Calculator (per Generator)</h2>
+                    <p class="text-sm text-gray-400 mb-4">Calculate the Qmax value for a single generator based on the formula: Qmax = √(S² - P²).</p>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label for="qmax_s" class="block text-sm font-medium text-gray-300 mb-1">Apparent Power (S) in MVA</label>
+                            <input type="number" id="qmax_s" class="input-field" placeholder="e.g., 222.2">
+                        </div>
+                        <div>
+                            <label for="qmax_p" class="block text-sm font-medium text-gray-300 mb-1">Active Power (P) in MW</label>
+                            <input type="number" id="qmax_p" class="input-field" placeholder="e.g., 200.0">
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-4 mt-4">
+                        <button id="calculateQmaxBtn" class="btn btn-primary bg-purple-600 hover:bg-purple-700">Calculate Qmax</button>
+                        <button id="resetQmaxBtn" class="btn btn-secondary">Reset</button>
+                    </div>
+                    <div id="qmaxResultCard" class="mt-6 hidden">
+                        <div class="bg-gray-900 p-4 rounded-lg border border-purple-500/50 inline-block">
+                            <p class="text-sm font-medium text-gray-400">Qmax Result</p>
+                            <p id="qmax_result" class="text-2xl font-bold text-purple-400 mt-1">-</p>
+                            <p class="text-sm text-gray-500">Mvar</p>
+                        </div>
+                        <p id="qmaxErrorMessage" class="mt-2 text-red-400 text-sm font-medium"></p>
+                    </div>
+                </div>
+            </main>
+        </div>
+
+
+        <!-- SINGLE GENERATOR CALCULATOR CONTENT -->
+        <div id="singleGenCalc" class="calculator-content">
+            <main class="space-y-10">
+                <div class="text-center">
+                    <button id="sg_resetAllBtn" class="btn bg-red-600 hover:bg-red-700 text-white">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-counterclockwise" viewBox="0 0 16 16">
+                            <path fill-rule="evenodd" d="M8 3a5 5 0 1 1-4.546 2.914.5.5 0 0 0-.908-.417A6 6 0 1 0 8 2z"/>
+                            <path d="M8 4.466V.534a.25.25 0 0 0-.41-.192L5.23 2.308a.25.25 0 0 0 0 .384l2.36 1.966A.25.25 0 0 0 8 4.466"/>
+                        </svg>
+                        <span>Reset All</span>
+                    </button>
+                </div>
+                
+                <!-- GLOBAL TARGETS -->
+                <div class="card p-6 border-2 border-green-500">
+                    <h2 class="step-header text-green-400">Global Targets</h2>
+                    <p class="text-sm text-gray-400 mb-6">Define your final PGen and QGen targets here. These values will be used throughout the calculation steps.</p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="sg_p_out_target_global" class="block text-sm font-medium text-gray-300 mb-1">🎯 Target PGen Output (MW)</label>
+                            <input type="number" id="sg_p_out_target_global" class="input-field" placeholder="e.g., -108.0000">
+                        </div>
+                        <div>
+                            <label for="sg_q_out_target_global" class="block text-sm font-medium text-gray-300 mb-1">🎯 Target QGen Output (Mvar)</label>
+                            <input type="number" id="sg_q_out_target_global" class="input-field" placeholder="e.g., 0.0000">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STEP 1: PGen TUNING -->
+                <div class="card p-6">
+                    <h2 class="step-header">Step 1: Initial PGen Estimation</h2>
+                    <p class="text-sm text-gray-400 mb-6">Enter data from two simulations to estimate the required `PGen Input` for your global target. Ensure `VSched Input` is constant for this step.</p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="space-y-6">
+                            <div class="space-y-4">
+                                <h3 class="font-semibold text-white">Data from 2 PGen Simulations:</h3>
+                                <div class="bg-gray-900 p-4 rounded-lg border border-gray-700">
+                                    <p class="font-medium text-green-400 mb-2">Simulation A</p>
+                                    <label class="text-xs text-gray-400">PGen Input (MW)</label>
+                                    <input type="number" id="sg_p_in_A" class="input-field mt-1" placeholder="Initial PGen value">
+                                    <label class="text-xs text-gray-400 mt-2 block">VSched Input (pu)</label>
+                                    <input type="number" class="input-field mt-1" placeholder="e.g., 1.000" value="1.000">
+                                    <label class="text-xs text-gray-400 mt-2 block">PGen Output (MW)</label>
+                                    <input type="number" id="sg_p_out_A" class="input-field mt-1" placeholder="Resulting PGen output">
+                                </div>
+                                <div class="bg-gray-900 p-4 rounded-lg border border-gray-700">
+                                    <p class="font-medium text-green-400 mb-2">Simulation B</p>
+                                    <label class="text-xs text-gray-400">PGen Input (MW)</label>
+                                    <input type="number" id="sg_p_in_B" class="input-field mt-1" placeholder="Second PGen value">
+                                    <label class="text-xs text-gray-400 mt-2 block">VSched Input (pu)</label>
+                                    <input type="number" class="input-field mt-1" placeholder="e.g., 1.000" value="1.000">
+                                    <label class="text-xs text-gray-400 mt-2 block">PGen Output (MW)</label>
+                                    <input type="number" id="sg_p_out_B" class="input-field mt-1" placeholder="Second resulting PGen output">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex flex-col">
+                             <div class="space-y-4">
+                                <button id="sg_calculatePBtn" class="btn btn-primary w-full">Calculate Estimated PGen Input</button>
+                                <button id="sg_resetPBtn" class="btn btn-secondary w-full">Reset Step 1</button>
+                            </div>
+                            <div id="sg_pResultCard" class="mt-6 p-6 flex-grow flex flex-col justify-center items-center bg-gray-900 rounded-lg border border-gray-700 hidden">
+                                 <h3 class="font-semibold text-white mb-3 text-center">✅ Estimated PGen Input:</h3>
+                                 <div class="result-box text-center">
+                                    <p id="sg_p_in_result" class="text-3xl font-bold text-green-400">-</p>
+                                    <p class="text-sm text-gray-500">MW</p>
+                                 </div>
+                                 <p id="sg_pErrorMessage" class="mt-4 text-red-400 text-sm font-medium text-center"></p>
+                                 <div id="sg_pNextStep" class="mt-4 text-center text-sm text-gray-400 hidden">
+                                    <p>➡️ Now, use this PGen value as a constant input for your Step 2 simulations.</p>
+                                 </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STEP 2: QGen TUNING -->
+                <div class="card p-6">
+                    <h2 class="step-header">Step 2: Initial VSched Estimation</h2>
+                    <p class="text-sm text-gray-400 mb-6">Use the `PGen Input` from Step 1 as a constant. Now, find the `VSched Input` to meet the global `QGen Output` target. PGen Output may drift slightly.</p>
+                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="space-y-6">
+                            <div>
+                                <label for="sg_p_in_s2" class="block text-sm font-medium text-gray-300 mb-2">⚡ **PGen Input from Step 1 (constant)**</label>
+                                <input type="number" id="sg_p_in_s2" class="input-field" placeholder="Enter calculated PGen from Step 1">
+                            </div>
+                            <div class="space-y-4">
+                                 <h3 class="font-semibold text-white">Data from 2 VSched Simulations:</h3>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div class="bg-gray-900 p-4 rounded-lg border border-gray-700">
+                                        <p class="font-medium text-yellow-400 mb-2">Simulation C</p>
+                                        <label class="text-xs text-gray-400">VSched Input (pu)</label>
+                                        <input type="number" id="sg_v_in_C" class="input-field mt-1" placeholder="Initial VSched value">
+                                        <label class="text-xs text-gray-400 mt-2 block">QGen Output (Mvar)</label>
+                                        <input type="number" id="sg_q_out_C" class="input-field mt-1" placeholder="Resulting QGen output">
+                                    </div>
+                                    <div class="bg-gray-900 p-4 rounded-lg border border-gray-700">
+                                        <p class="font-medium text-yellow-400 mb-2">Simulation D</p>
+                                        <label class="text-xs text-gray-400">VSched Input (pu)</label>
+                                        <input type="number" id="sg_v_in_D" class="input-field mt-1" placeholder="Second VSched value">
+                                        <label class="text-xs text-gray-400 mt-2 block">QGen Output (Mvar)</label>
+                                        <input type="number" id="sg_q_out_D" class="input-field mt-1" placeholder="Second resulting QGen output">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex flex-col">
+                             <div class="space-y-4">
+                                <button id="sg_calculateQBtn" class="btn btn-primary w-full">Calculate Estimated VSched Input</button>
+                                 <button id="sg_resetQBtn" class="btn btn-secondary w-full">Reset Step 2</button>
+                            </div>
+                            <div id="sg_qResultCard" class="mt-6 p-6 flex-grow flex flex-col justify-center items-center bg-gray-900 rounded-lg border border-gray-700 hidden">
+                                 <h3 class="font-semibold text-white mb-3 text-center">✅ Estimated VSched Input:</h3>
+                                 <div class="result-box text-center">
+                                    <p id="sg_v_in_result" class="text-3xl font-bold text-yellow-400">-</p>
+                                    <p class="text-sm text-gray-500">pu</p>
+                                 </div>
+                                 <p id="sg_qErrorMessage" class="mt-4 text-red-400 text-sm font-medium text-center"></p>
+                                 <button id="sg_useForStep3Btn" class="btn btn-primary mt-4 w-full text-sm bg-indigo-600 hover:bg-indigo-700">Use these values for Step 3</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- STEP 3: FINAL CORRECTION -->
+                <div class="card p-6 border-2 border-blue-500">
+                    <h2 class="step-header text-blue-400">Step 3: Final Correction Calculator</h2>
+                    <p class="text-sm text-gray-400 mb-6">Use this for high-precision results, accounting for P-Q coupling. It will calculate the final adjustment needed to meet both global targets simultaneously.</p>
+                    
+                    <div>
+                         <h3 class="font-semibold text-white mb-2">Data from 3 Correction Simulations:</h3>
+                         <p class="text-xs text-gray-400 mb-4">Start with your result from Step 2, then slightly change PGen and VSched to get sensitivity data.</p>
+                         <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                            <!-- Sim E: Current Condition -->
+                            <div class="bg-gray-900 p-3 rounded-lg border border-gray-700">
+                                 <p class="font-medium text-blue-400 mb-2">Simulation E (Current Condition)</p>
+                                 <label class="text-xs">PGen In</label><input type="number" id="sg_p_in_E" class="input-field my-1" placeholder="Current PGen In">
+                                 <label class="text-xs">VSched In</label><input type="number" id="sg_v_in_E" class="input-field my-1" placeholder="Current VSched In">
+                                 <label class="text-xs">PGen Out</label><input type="number" id="sg_p_out_E" class="input-field my-1" placeholder="Current PGen Out">
+                                 <label class="text-xs">QGen Out</label><input type="number" id="sg_q_out_E" class="input-field my-1" placeholder="Current QGen Out">
+                            </div>
+                            <!-- Sim F: Change PGen -->
+                            <div class="bg-gray-900 p-3 rounded-lg border border-gray-700">
+                                 <p class="font-medium text-blue-400 mb-2">Simulation F (Change PGen In)</p>
+                                 <label class="text-xs">PGen In</label><input type="number" id="sg_p_in_F" class="input-field my-1" placeholder="PGen In + small change">
+                                 <label class="text-xs">PGen Out</label><input type="number" id="sg_p_out_F" class="input-field my-1" placeholder="Resulting PGen Out">
+                                 <label class="text-xs">QGen Out</label><input type="number" id="sg_q_out_F" class="input-field my-1" placeholder="Resulting QGen Out">
+                            </div>
+                            <!-- Sim G: Change VSched -->
+                             <div class="bg-gray-900 p-3 rounded-lg border border-gray-700">
+                                 <p class="font-medium text-blue-400 mb-2">Simulation G (Change VSched In)</p>
+                                 <label class="text-xs">VSched In</label><input type="number" id="sg_v_in_G" class="input-field my-1" placeholder="VSched In + small change">
+                                 <label class="text-xs">PGen Out</label><input type="number" id="sg_p_out_G" class="input-field my-1" placeholder="Resulting PGen Out">
+                                 <label class="text-xs">QGen Out</label><input type="number" id="sg_q_out_G" class="input-field my-1" placeholder="Resulting QGen Out">
+                            </div>
+                         </div>
+                    </div>
+                    
+                    <div class="mt-6 flex flex-col md:flex-row gap-4">
+                         <button id="sg_calculateFinalBtn" class="btn btn-primary w-full bg-blue-600 hover:bg-blue-700">Calculate Final Correction</button>
+                         <button id="sg_resetFinalBtn" class="btn btn-secondary w-full">Reset Step 3</button>
+                    </div>
+
+                    <div id="sg_finalResultCard" class="mt-6 p-6 bg-gray-900 rounded-lg border border-gray-700 hidden">
+                        <h3 class="font-semibold text-white mb-4 text-center">🏆 Recommended Final Results:</h3>
+                        <div class="flex flex-col sm:flex-row justify-center items-center gap-6">
+                            <div class="result-box text-center">
+                                <p class="text-sm font-medium text-gray-400">Final PGen Input</p>
+                                <p id="sg_p_in_final_result" class="text-3xl font-bold text-green-400 mt-1">-</p>
+                                <p class="text-sm text-gray-500">MW</p>
+                            </div>
+                            <div class="result-box text-center">
+                                <p class="text-sm font-medium text-gray-400">Final VSched Input</p>
+                                <p id="sg_v_in_final_result" class="text-3xl font-bold text-yellow-400 mt-1">-</p>
+                                <p class="text-sm text-gray-500">pu</p>
+                            </div>
+                        </div>
+                        <p id="sg_finalErrorMessage" class="mt-4 text-red-400 text-sm font-medium text-center"></p>
+                    </div>
+                </div>
+
+                <!-- UTILITY: Qmax Calculator -->
+                <div class="card p-6">
+                    <h2 class="step-header">Utility: Qmax Calculator</h2>
+                    <p class="text-sm text-gray-400 mb-4">Calculate the Qmax value based on the formula: Qmax = √(S² - P²).</p>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label for="sg_qmax_s" class="block text-sm font-medium text-gray-300 mb-1">Apparent Power (S) in MVA</label>
+                            <input type="number" id="sg_qmax_s" class="input-field" placeholder="e.g., 222.2">
+                        </div>
+                        <div>
+                            <label for="sg_qmax_p" class="block text-sm font-medium text-gray-300 mb-1">Active Power (P) in MW</label>
+                            <input type="number" id="sg_qmax_p" class="input-field" placeholder="e.g., 200.0">
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-4 mt-4">
+                        <button id="sg_calculateQmaxBtn" class="btn btn-primary bg-purple-600 hover:bg-purple-700">Calculate Qmax</button>
+                        <button id="sg_resetQmaxBtn" class="btn btn-secondary">Reset</button>
+                    </div>
+                    <div id="sg_qmaxResultCard" class="mt-6 hidden">
+                        <div class="bg-gray-900 p-4 rounded-lg border border-purple-500/50 inline-block">
+                            <p class="text-sm font-medium text-gray-400">Qmax Result</p>
+                            <p id="sg_qmax_result" class="text-2xl font-bold text-purple-400 mt-1">-</p>
+                            <p class="text-sm text-gray-500">Mvar</p>
+                        </div>
+                        <p id="sg_qmaxErrorMessage" class="mt-2 text-red-400 text-sm font-medium"></p>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // --- Common Logic ---
+        const interpolate = (y_target, x1, y1, x2, y2) => {
+            if (Math.abs(y2 - y1) < 1e-9) throw new Error("Output value did not change. Try using more varied inputs.");
+            return x1 + (y_target - y1) * (x2 - x1) / (y2 - y1);
+        };
+        const getValues = (ids) => {
+            const values = {};
+            let allValid = true;
+            ids.forEach(id => {
+                const el = document.getElementById(id);
+                const val = parseFloat(el.value);
+                if (isNaN(val)) { el.style.borderColor = 'red'; allValid = false; } 
+                else { el.style.borderColor = ''; values[id] = val; }
+            });
+            if (!allValid) throw new Error("Ensure all relevant fields are filled with valid numbers.");
+            return values;
+        };
+
+        // --- Tab Switching Logic ---
+        const tabDual = document.getElementById('tab-dual');
+        const tabSingle = document.getElementById('tab-single');
+        const contentDual = document.getElementById('dualGenCalc');
+        const contentSingle = document.getElementById('singleGenCalc');
+
+        tabDual.addEventListener('click', () => {
+            tabDual.classList.add('active');
+            tabSingle.classList.remove('active');
+            contentDual.classList.add('active');
+            contentSingle.classList.remove('active');
+        });
+
+        tabSingle.addEventListener('click', () => {
+            tabSingle.classList.add('active');
+            tabDual.classList.remove('active');
+            contentSingle.classList.add('active');
+            contentDual.classList.remove('active');
+        });
+
+        // --- DUAL GENERATOR CALCULATOR LOGIC ---
+        
+        // --- Global Target Sync Logic ---
+        const globalPTarget = document.getElementById('global_p_target');
+        const globalQTarget = document.getElementById('global_q_target');
+        const pTargetS1 = document.getElementById('p_out_target_s1');
+        const qTargetS2 = document.getElementById('q_out_target_s2');
+        const pTargetS3 = document.getElementById('p_out_target_s3');
+        const qTargetS3 = document.getElementById('q_out_target_s3');
+
+        globalPTarget.addEventListener('input', () => {
+            pTargetS1.value = globalPTarget.value;
+            pTargetS3.value = globalPTarget.value;
+        });
+        globalQTarget.addEventListener('input', () => {
+            qTargetS2.value = globalQTarget.value;
+            qTargetS3.value = globalQTarget.value;
+        });
+
+        // --- Ratio & Asymmetry Logic ---
+        const ratioG1 = document.getElementById('ratio_g1');
+        const ratioG2 = document.getElementById('ratio_g2');
+
+        const getRatio = () => {
+            const r1 = parseFloat(ratioG1.value) || 50;
+            const r2 = parseFloat(ratioG2.value) || 50;
+            if (r1 <= 0) return { r1: 1, r2: 0, factor: 0 }; // Avoid division by zero
+            return { r1, r2, factor: r2 / r1 };
+        };
+        
+        const updateAsymmetricalP = (sourceId, targetId) => {
+            const sourceEl = document.getElementById(sourceId);
+            const targetEl = document.getElementById(targetId);
+            const sourceVal = parseFloat(sourceEl.value);
+            const { factor } = getRatio();
+            if (!isNaN(sourceVal)) {
+                targetEl.value = (sourceVal * factor).toFixed(10);
+            } else {
+                targetEl.value = '';
+            }
+        };
+        
+        const updateAllAsymmetricalP = () => {
+             updateAsymmetricalP('p_in_A1', 'p_in_A2');
+             updateAsymmetricalP('p_in_B1', 'p_in_B2');
+             updateAsymmetricalP('p_in_E1', 'p_in_E2');
+             updateAsymmetricalP('p_in_F1', 'p_in_F2');
+        };
+        
+        ratioG1.addEventListener('input', () => {
+            let val1 = parseFloat(ratioG1.value);
+            if (isNaN(val1) || val1 < 0) val1 = 0;
+            if (val1 > 100) val1 = 100;
+            ratioG2.value = (100 - val1).toFixed(10);
+            updateAllAsymmetricalP();
+        });
+
+        ['p_in_A1', 'p_in_B1', 'p_in_E1', 'p_in_F1'].forEach(id => {
+            document.getElementById(id).addEventListener('input', () => {
+                const targetId = id.replace('1', '2');
+                updateAsymmetricalP(id, targetId);
+            });
+        });
+
+        // --- Symmetry Checkbox Logic ---
+        const setupSymmetry = (checkId, input1Id, input2Id) => {
+            const check = document.getElementById(checkId);
+            const input1 = document.getElementById(input1Id);
+            const input2 = document.getElementById(input2Id);
+            const update = () => {
+                if (check.checked) {
+                    input2.value = input1.value;
+                    input2.readOnly = true;
+                    input2.classList.add('bg-gray-600', 'cursor-not-allowed');
+                } else {
+                    input2.readOnly = false;
+                    input2.classList.remove('bg-gray-600', 'cursor-not-allowed');
+                }
+            };
+            check.addEventListener('change', update);
+            input1.addEventListener('input', update);
+            update();
+        };
+        setupSymmetry('symm_v_s2', 'v_in_C1', 'v_in_C2');
+        setupSymmetry('symm_v_s2', 'v_in_D1', 'v_in_D2');
+
+        // --- PGen Calculator (Step 1) ---
+        document.getElementById('calculatePBtn').addEventListener('click', () => {
+            const resultCard = document.getElementById('pResultCard');
+            const resultEl1 = document.getElementById('p_in_result_1');
+            const resultEl2 = document.getElementById('p_in_result_2');
+            const errorEl = document.getElementById('pErrorMessage');
+            const nextStepEl = document.getElementById('pNextStep');
+            resultCard.classList.remove('hidden');
+            try {
+                const v = getValues(['p_out_target_s1', 'p_in_A1', 'p_out_A', 'p_in_B1', 'p_out_B']);
+                const p_in_target_1 = interpolate(v.p_out_target_s1, v.p_in_A1, v.p_out_A, v.p_in_B1, v.p_out_B);
+                const { factor } = getRatio();
+                const p_in_target_2 = p_in_target_1 * factor;
+
+                resultEl1.textContent = p_in_target_1.toFixed(10);
+                resultEl2.textContent = p_in_target_2.toFixed(10);
+                errorEl.textContent = '';
+                nextStepEl.classList.remove('hidden');
+            } catch (e) {
+                resultEl1.textContent = '-';
+                resultEl2.textContent = '-';
+                errorEl.textContent = e.message;
+                nextStepEl.classList.add('hidden');
+            }
+        });
+        const resetPSection = () => {
+            ['p_in_A1', 'p_in_A2', 'p_out_A', 'p_in_B1', 'p_in_B2', 'p_out_B'].forEach(id => {
+                if(document.getElementById(id)) document.getElementById(id).value = '';
+            });
+            document.getElementById('pResultCard').classList.add('hidden');
+            document.getElementById('pNextStep').classList.add('hidden');
+        };
+        document.getElementById('resetPBtn').addEventListener('click', resetPSection);
+        
+        document.getElementById('useForStep2Btn').addEventListener('click', () => {
+            const p1 = document.getElementById('p_in_result_1').textContent;
+            if (p1 !== '-') {
+                document.getElementById('p_in_1_s2').value = p1;
+                document.getElementById('p_in_2_s2').value = document.getElementById('p_in_result_2').textContent;
+                document.getElementById('p_in_1_s2').scrollIntoView({ behavior: 'smooth', block: 'center' });
+            } else {
+                 alert("Please calculate a valid result in Step 1 first.");
+            }
+        });
+
+        // --- QGen Calculator (Step 2) ---
+        document.getElementById('calculateQBtn').addEventListener('click', () => {
+            const resultCard = document.getElementById('qResultCard');
+            const resultEl = document.getElementById('v_in_result');
+            const errorEl = document.getElementById('qErrorMessage');
+            resultCard.classList.remove('hidden');
+            try {
+                const v = getValues(['p_in_1_s2', 'p_in_2_s2', 'q_out_target_s2', 'v_in_C1', 'q_out_C', 'v_in_D1', 'q_out_D']);
+                const v_in_target = interpolate(v.q_out_target_s2, v.v_in_C1, v.q_out_C, v.v_in_D1, v.q_out_D);
+                resultEl.textContent = v_in_target.toFixed(10);
+                errorEl.textContent = '';
+            } catch (e) {
+                resultEl.textContent = '-';
+                errorEl.textContent = e.message;
+            }
+        });
+        const resetQSection = () => {
+            ['p_in_1_s2', 'p_in_2_s2', 'v_in_C1', 'v_in_C2', 'q_out_C', 'v_in_D1', 'v_in_D2', 'q_out_D'].forEach(id => {
+                if(document.getElementById(id)) document.getElementById(id).value = '';
+            });
+            document.getElementById('qResultCard').classList.add('hidden');
+        };
+        document.getElementById('resetQBtn').addEventListener('click', resetQSection);
+
+        document.getElementById('useForStep3Btn').addEventListener('click', () => {
+            const pInS2_1 = document.getElementById('p_in_1_s2').value;
+            const vInResult = document.getElementById('v_in_result').textContent;
+            
+            if (pInS2_1 && vInResult !== '-') {
+                document.getElementById('p_in_E1').value = parseFloat(pInS2_1).toFixed(10);
+                updateAsymmetricalP('p_in_E1', 'p_in_E2');
+                document.getElementById('v_in_E').value = parseFloat(vInResult).toFixed(10);
+                document.getElementById('p_in_E1').scrollIntoView({ behavior: 'smooth', block: 'center' });
+            } else {
+                alert("Please complete Steps 1 and 2 first.");
+            }
+        });
+
+        // --- Final Correction Calculator (Step 3) ---
+        document.getElementById('calculateFinalBtn').addEventListener('click', () => {
+             const resultCard = document.getElementById('finalResultCard');
+             const pResultEl1 = document.getElementById('p_in_final_result_1');
+             const pResultEl2 = document.getElementById('p_in_final_result_2');
+             const vResultEl = document.getElementById('v_in_final_result');
+             const errorEl = document.getElementById('finalErrorMessage');
+             resultCard.classList.remove('hidden');
+
+             try {
+                const v = getValues([
+                    'p_out_target_s3', 'q_out_target_s3', 'p_in_E1', 'v_in_E', 'p_out_E', 'q_out_E',
+                    'p_in_F1', 'p_out_F', 'q_out_F', 'v_in_G', 'p_out_G', 'q_out_G'
+                ]);
+
+                const dp_in = v.p_in_F1 - v.p_in_E1;
+                const dv_in = v.v_in_G - v.v_in_E;
+                if (Math.abs(dp_in) < 1e-6 || Math.abs(dv_in) < 1e-6) throw new Error("Input change for simulation F or G is too small.");
+
+                const J11 = (v.p_out_F - v.p_out_E) / dp_in;
+                const J21 = (v.q_out_F - v.q_out_E) / dp_in;
+                const J12 = (v.p_out_G - v.p_out_E) / dv_in;
+                const J22 = (v.q_out_G - v.q_out_E) / dv_in;
+
+                const determinant = J11 * J22 - J12 * J21;
+                if (Math.abs(determinant) < 1e-9) throw new Error("System cannot be solved (singular matrix). Try different input changes.");
+
+                const error_p = v.p_out_target_s3 - v.p_out_E;
+                const error_q = v.q_out_target_s3 - v.q_out_E;
+
+                const delta_p_in = (J22 * error_p - J12 * error_q) / determinant;
+                const delta_v_in = (-J21 * error_p + J11 * error_q) / determinant;
+                
+                const { factor } = getRatio();
+                const p_final_1 = v.p_in_E1 + delta_p_in;
+                const p_final_2 = p_final_1 * factor;
+                const v_final = v.v_in_E + delta_v_in;
+
+                pResultEl1.textContent = p_final_1.toFixed(10);
+                pResultEl2.textContent = p_final_2.toFixed(10);
+                vResultEl.textContent = v_final.toFixed(10);
+                errorEl.textContent = '';
+             } catch(e) {
+                pResultEl1.textContent = '-';
+                pResultEl2.textContent = '-';
+                vResultEl.textContent = '-';
+                errorEl.textContent = e.message;
+             }
+        });
+        const resetFinalSection = () => {
+            const ids = ['p_in_E1', 'p_in_E2', 'v_in_E', 'p_out_E', 'q_out_E', 'p_in_F1', 'p_in_F2', 'p_out_F', 'q_out_F', 'v_in_G', 'p_out_G', 'q_out_G'];
+            ids.forEach(id => document.getElementById(id).value = '');
+            document.getElementById('finalResultCard').classList.add('hidden');
+        };
+         document.getElementById('resetFinalBtn').addEventListener('click', resetFinalSection);
+
+        // --- Qmax Calculator ---
+        const resetQmaxSection = () => {
+            document.getElementById('qmax_s').value = ''; 
+            document.getElementById('qmax_p').value = '';
+            document.getElementById('qmaxResultCard').classList.add('hidden');
+        };
+        document.getElementById('calculateQmaxBtn').addEventListener('click', () => {
+            try {
+                const v = getValues(['qmax_s', 'qmax_p']);
+                if (v.qmax_s < Math.abs(v.qmax_p)) throw new Error("S must be >= |P|.");
+                const qmax = Math.sqrt(v.qmax_s*v.qmax_s - v.qmax_p*v.qmax_p);
+                document.getElementById('qmax_result').textContent = qmax.toFixed(10);
+                document.getElementById('qmaxErrorMessage').textContent = '';
+            } catch (e) {
+                document.getElementById('qmax_result').textContent = '-';
+                document.getElementById('qmaxErrorMessage').textContent = e.message;
+            }
+            document.getElementById('qmaxResultCard').classList.remove('hidden');
+        });
+        document.getElementById('resetQmaxBtn').addEventListener('click', resetQmaxSection);
+
+        // --- Reset All Button ---
+        document.getElementById('resetAllBtn').addEventListener('click', () => {
+            globalPTarget.value = '';
+            globalQTarget.value = '';
+            globalPTarget.dispatchEvent(new Event('input'));
+            
+            ratioG1.value = '50';
+            ratioG1.dispatchEvent(new Event('input'));
+
+            resetPSection();
+            resetQSection();
+            resetFinalSection();
+            resetQmaxSection();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+
+
+        // --- SINGLE GENERATOR CALCULATOR LOGIC ---
+
+        // --- Global Target Logic ---
+        const sg_pTargetGlobalEl = document.getElementById('sg_p_out_target_global');
+        sg_pTargetGlobalEl.addEventListener('change', () => {
+            const val = parseFloat(sg_pTargetGlobalEl.value);
+            if (!isNaN(val) && val > 1e-9) sg_pTargetGlobalEl.value = -Math.abs(val);
+        });
+
+        // --- PGen Calculator (Step 1) ---
+        document.getElementById('sg_calculatePBtn').addEventListener('click', () => {
+            const resultCard = document.getElementById('sg_pResultCard');
+            const resultEl = document.getElementById('sg_p_in_result');
+            const errorEl = document.getElementById('sg_pErrorMessage');
+            const nextStepEl = document.getElementById('sg_pNextStep');
+            resultCard.classList.remove('hidden');
+            try {
+                const v = getValues(['sg_p_out_target_global', 'sg_p_in_A', 'sg_p_out_A', 'sg_p_in_B', 'sg_p_out_B']);
+                const p_in_target = interpolate(v.sg_p_out_target_global, v.sg_p_in_A, v.sg_p_out_A, v.sg_p_in_B, v.sg_p_out_B);
+                resultEl.textContent = p_in_target.toFixed(10);
+                errorEl.textContent = '';
+                nextStepEl.classList.remove('hidden');
+            } catch (e) {
+                resultEl.textContent = '-';
+                errorEl.textContent = e.message;
+                nextStepEl.classList.add('hidden');
+            }
+        });
+        const sg_resetPSection = () => {
+            ['sg_p_in_A', 'sg_p_out_A', 'sg_p_in_B', 'sg_p_out_B'].forEach(id => document.getElementById(id).value = '');
+            document.getElementById('sg_pResultCard').classList.add('hidden');
+            document.getElementById('sg_pNextStep').classList.add('hidden');
+        };
+        document.getElementById('sg_resetPBtn').addEventListener('click', sg_resetPSection);
+
+        // --- QGen Calculator (Step 2) ---
+        document.getElementById('sg_calculateQBtn').addEventListener('click', () => {
+            const resultCard = document.getElementById('sg_qResultCard');
+            const resultEl = document.getElementById('sg_v_in_result');
+            const errorEl = document.getElementById('sg_qErrorMessage');
+            resultCard.classList.remove('hidden');
+            try {
+                const v = getValues(['sg_p_in_s2', 'sg_q_out_target_global', 'sg_v_in_C', 'sg_q_out_C', 'sg_v_in_D', 'sg_q_out_D']);
+                const v_in_target = interpolate(v.sg_q_out_target_global, v.sg_v_in_C, v.sg_q_out_C, v.sg_v_in_D, v.sg_q_out_D);
+                resultEl.textContent = v_in_target.toFixed(10);
+                errorEl.textContent = '';
+            } catch (e) {
+                resultEl.textContent = '-';
+                errorEl.textContent = e.message;
+            }
+        });
+        const sg_resetQSection = () => {
+            ['sg_p_in_s2', 'sg_v_in_C', 'sg_q_out_C', 'sg_v_in_D', 'sg_q_out_D'].forEach(id => document.getElementById(id).value = '');
+            document.getElementById('sg_qResultCard').classList.add('hidden');
+        };
+        document.getElementById('sg_resetQBtn').addEventListener('click', sg_resetQSection);
+
+        document.getElementById('sg_useForStep3Btn').addEventListener('click', () => {
+            const pInS2 = document.getElementById('sg_p_in_s2').value;
+            const vInResult = document.getElementById('sg_v_in_result').textContent;
+            if (pInS2 && vInResult !== '-') {
+                document.getElementById('sg_p_in_E').value = parseFloat(pInS2).toFixed(10);
+                document.getElementById('sg_v_in_E').value = parseFloat(vInResult).toFixed(10);
+                document.getElementById('sg_p_in_E').scrollIntoView({ behavior: 'smooth', block: 'center' });
+            } else {
+                alert("Please calculate a valid result in Step 2 first.");
+            }
+        });
+
+        // --- Final Correction Calculator (Step 3) ---
+        document.getElementById('sg_calculateFinalBtn').addEventListener('click', () => {
+             const resultCard = document.getElementById('sg_finalResultCard');
+             const pResultEl = document.getElementById('sg_p_in_final_result');
+             const vResultEl = document.getElementById('sg_v_in_final_result');
+             const errorEl = document.getElementById('sg_finalErrorMessage');
+             resultCard.classList.remove('hidden');
+             try {
+                const v = getValues([
+                    'sg_p_out_target_global', 'sg_q_out_target_global', 'sg_p_in_E', 'sg_v_in_E', 'sg_p_out_E', 'sg_q_out_E',
+                    'sg_p_in_F', 'sg_p_out_F', 'sg_q_out_F', 'sg_v_in_G', 'sg_p_out_G', 'sg_q_out_G'
+                ]);
+
+                const dp_in = v.sg_p_in_F - v.sg_p_in_E;
+                const dv_in = v.sg_v_in_G - v.sg_v_in_E;
+                if (Math.abs(dp_in) < 1e-6 || Math.abs(dv_in) < 1e-6) throw new Error("Input change for simulation F or G is too small.");
+
+                const J11 = (v.sg_p_out_F - v.sg_p_out_E) / dp_in;
+                const J21 = (v.sg_q_out_F - v.sg_q_out_E) / dp_in;
+                const J12 = (v.sg_p_out_G - v.sg_p_out_E) / dv_in;
+                const J22 = (v.sg_q_out_G - v.sg_q_out_E) / dv_in;
+                const determinant = J11 * J22 - J12 * J21;
+                if (Math.abs(determinant) < 1e-9) throw new Error("System cannot be solved (singular matrix).");
+
+                const error_p = v.sg_p_out_target_global - v.sg_p_out_E;
+                const error_q = v.sg_q_out_target_global - v.sg_q_out_E;
+                const delta_p_in = (J22 * error_p - J12 * error_q) / determinant;
+                const delta_v_in = (-J21 * error_p + J11 * error_q) / determinant;
+                
+                pResultEl.textContent = (v.sg_p_in_E + delta_p_in).toFixed(10);
+                vResultEl.textContent = (v.sg_v_in_E + delta_v_in).toFixed(10);
+                errorEl.textContent = '';
+             } catch(e) {
+                pResultEl.textContent = '-';
+                vResultEl.textContent = '-';
+                errorEl.textContent = e.message;
+             }
+        });
+        const sg_resetFinalSection = () => {
+            const ids = ['sg_p_in_E', 'sg_v_in_E', 'sg_p_out_E', 'sg_q_out_E', 'sg_p_in_F', 'sg_p_out_F', 'sg_q_out_F', 'sg_v_in_G', 'sg_p_out_G', 'sg_q_out_G'];
+            ids.forEach(id => document.getElementById(id).value = '');
+            document.getElementById('sg_finalResultCard').classList.add('hidden');
+        };
+         document.getElementById('sg_resetFinalBtn').addEventListener('click', sg_resetFinalSection);
+
+        // --- Qmax Calculator ---
+        const sg_resetQmaxSection = () => {
+            document.getElementById('sg_qmax_s').value = ''; 
+            document.getElementById('sg_qmax_p').value = '';
+            document.getElementById('sg_qmaxResultCard').classList.add('hidden');
+        };
+        document.getElementById('sg_calculateQmaxBtn').addEventListener('click', () => {
+            try {
+                const v = getValues(['sg_qmax_s', 'sg_qmax_p']);
+                if (v.sg_qmax_s < Math.abs(v.sg_qmax_p)) throw new Error("S must be >= |P|.");
+                const qmax = Math.sqrt(v.sg_qmax_s*v.sg_qmax_s - v.sg_qmax_p*v.sg_qmax_p);
+                document.getElementById('sg_qmax_result').textContent = qmax.toFixed(10);
+                document.getElementById('sg_qmaxErrorMessage').textContent = '';
+            } catch (e) {
+                document.getElementById('sg_qmax_result').textContent = '-';
+                document.getElementById('sg_qmaxErrorMessage').textContent = e.message;
+            }
+            document.getElementById('sg_qmaxResultCard').classList.remove('hidden');
+        });
+        document.getElementById('sg_resetQmaxBtn').addEventListener('click', sg_resetQmaxSection);
+
+        // --- Reset All Button ---
+        document.getElementById('sg_resetAllBtn').addEventListener('click', () => {
+            document.getElementById('sg_p_out_target_global').value = '';
+            document.getElementById('sg_q_out_target_global').value = '';
+            sg_resetPSection();
+            sg_resetQSection();
+            sg_resetFinalSection();
+            sg_resetQmaxSection();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+    });
+    </script>
+</body>
+</html>
+
+
