@@ -111,13 +111,13 @@
         <!-- TABS -->
         <div class="mb-8 border-b border-gray-700">
             <nav class="flex justify-center -mb-px space-x-4" aria-label="Tabs">
-                <button class="tab-btn active" id="tab-dual">Dual Generator</button>
+                <button class="tab-btn active" id="tab-multi">Multi-Generator</button>
                 <button class="tab-btn" id="tab-single">Single Generator</button>
             </nav>
         </div>
 
-        <!-- DUAL GENERATOR CALCULATOR CONTENT -->
-        <div id="dualGenCalc" class="calculator-content active">
+        <!-- MULTI-GENERATOR CALCULATOR CONTENT -->
+        <div id="multiGenCalc" class="calculator-content active">
             <main class="space-y-10">
                 <div class="card p-6 border-2 border-indigo-500">
                     <h2 class="step-header text-indigo-400">Global Targets</h2>
@@ -133,19 +133,22 @@
                         </div>
                     </div>
                 </div>
+
+                <div class="card p-6">
+                    <h2 class="step-header text-purple-400">Configuration</h2>
+                     <label for="num_generators" class="block text-sm font-medium text-gray-300 mb-1">Number of Generators</label>
+                    <select id="num_generators" class="input-field bg-gray-700 w-full md:w-1/4">
+                        <option value="2" selected>2 Generators</option>
+                        <option value="3">3 Generators</option>
+                        <option value="4">4 Generators</option>
+                    </select>
+                </div>
     
                 <div class="card p-6">
                     <h2 class="step-header text-cyan-400">Generator Load Ratio</h2>
-                    <p class="text-sm text-gray-400 mb-4">Set the load distribution between the two generators. The total must be 100%.</p>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
-                        <div>
-                            <label for="ratio_g1" class="block text-sm font-medium text-gray-300 mb-1">Generator 1 Share (%)</label>
-                            <input type="number" id="ratio_g1" class="input-field" value="50">
-                        </div>
-                        <div>
-                            <label for="ratio_g2" class="block text-sm font-medium text-gray-300 mb-1">Generator 2 Share (%)</label>
-                            <input type="number" id="ratio_g2" class="input-field" value="50" readonly>
-                        </div>
+                    <p class="text-sm text-gray-400 mb-4">Set the load distribution between the generators. The total must be 100%.</p>
+                    <div id="ratio_container" class="grid grid-cols-2 md:grid-cols-4 gap-4 items-center">
+                        <!-- Dynamically populated -->
                     </div>
                 </div>
                 
@@ -162,7 +165,7 @@
                 <!-- STEP 1: PGen TUNING -->
                 <div class="card p-6">
                     <h2 class="step-header">Step 1: Initial PGen Estimation</h2>
-                    <p class="text-sm text-gray-400 mb-6">Goal: Find the `PGen Input` for both generators based on the defined ratio. Hold `VSched Input` constant.</p>
+                    <p class="text-sm text-gray-400 mb-6">Goal: Find the `PGen Input` for all generators based on the defined ratio. Hold `VSched Input` constant.</p>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div class="space-y-6">
                             <div>
@@ -174,16 +177,14 @@
                                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
                                     <div class="bg-gray-900 p-4 rounded-lg border border-gray-700">
                                         <p class="font-medium text-green-400 mb-2">Simulation A</p>
-                                        <label class="text-xs text-gray-400">PGen 1 In</label><input type="number" id="p_in_A1" class="input-field mt-1" placeholder="PGen 1">
-                                        <label class="text-xs text-gray-400 mt-2 block">PGen 2 In</label><input type="number" id="p_in_A2" class="input-field mt-1" placeholder="Calculated" readonly>
-                                        <label class="text-xs text-gray-400 mt-2 block">VSched In (Both)</label><input type="number" class="input-field mt-1" placeholder="e.g., 1.000" value="1.000">
+                                        <div id="p_in_A_container" class="space-y-2 mb-2"></div>
+                                        <label class="text-xs text-gray-400 block">VSched In (All)</label><input type="number" class="input-field mt-1" value="1.000">
                                         <label class="text-xs text-gray-400 mt-2 block">POI P Output (MW)</label><input type="number" id="p_out_A" class="input-field mt-1" placeholder="Total P at POI">
                                     </div>
                                     <div class="bg-gray-900 p-4 rounded-lg border border-gray-700">
                                         <p class="font-medium text-green-400 mb-2">Simulation B</p>
-                                        <label class="text-xs text-gray-400">PGen 1 In</label><input type="number" id="p_in_B1" class="input-field mt-1" placeholder="PGen 1">
-                                        <label class="text-xs text-gray-400 mt-2 block">PGen 2 In</label><input type="number" id="p_in_B2" class="input-field mt-1" placeholder="Calculated" readonly>
-                                        <label class="text-xs text-gray-400 mt-2 block">VSched In (Both)</label><input type="number" class="input-field mt-1" placeholder="e.g., 1.000" value="1.000">
+                                        <div id="p_in_B_container" class="space-y-2 mb-2"></div>
+                                        <label class="text-xs text-gray-400 block">VSched In (All)</label><input type="number" class="input-field mt-1" value="1.000">
                                         <label class="text-xs text-gray-400 mt-2 block">POI P Output (MW)</label><input type="number" id="p_out_B" class="input-field mt-1" placeholder="Total P at POI">
                                     </div>
                                 </div>
@@ -196,17 +197,8 @@
                             </div>
                             <div id="pResultCard" class="mt-6 p-6 flex-grow flex flex-col justify-center items-center bg-gray-900 rounded-lg border border-gray-700 hidden">
                                  <h3 class="font-semibold text-white mb-3 text-center">✅ Est. PGen Inputs:</h3>
-                                 <div class="flex flex-col sm:flex-row gap-4">
-                                    <div class="result-box text-center p-4">
-                                        <p class="text-sm font-medium text-gray-400">Gen 1 Input</p>
-                                        <p id="p_in_result_1" class="text-2xl font-bold text-green-400">-</p>
-                                        <p class="text-xs text-gray-500">MW</p>
-                                    </div>
-                                    <div class="result-box text-center p-4">
-                                        <p class="text-sm font-medium text-gray-400">Gen 2 Input</p>
-                                        <p id="p_in_result_2" class="text-2xl font-bold text-green-400">-</p>
-                                        <p class="text-xs text-gray-500">MW</p>
-                                    </div>
+                                 <div id="p_result_container" class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                                     <!-- Dynamically populated -->
                                  </div>
                                  <p id="pErrorMessage" class="mt-4 text-red-400 text-sm font-medium text-center"></p>
                                  <div id="pNextStep" class="mt-4 w-full text-center text-sm text-gray-400 hidden">
@@ -225,9 +217,8 @@
                         <div class="space-y-6">
                             <div>
                                 <label class="block text-sm font-medium text-gray-300 mb-2">⚡ **PGen Inputs (constant, from Step 1)**</label>
-                                <div class="grid grid-cols-2 gap-4">
-                                    <input type="number" id="p_in_1_s2" class="input-field" placeholder="PGen 1" readonly>
-                                    <input type="number" id="p_in_2_s2" class="input-field" placeholder="PGen 2" readonly>
+                                <div id="p_in_s2_container" class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                    <!-- Dynamically populated -->
                                 </div>
                             </div>
                             <div>
@@ -243,14 +234,12 @@
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div class="bg-gray-900 p-4 rounded-lg border border-gray-700">
                                         <p class="font-medium text-yellow-400 mb-2">Simulation C</p>
-                                        <label class="text-xs text-gray-400">VSched 1 In</label><input type="number" id="v_in_C1" class="input-field mt-1" placeholder="VSched 1">
-                                        <label class="text-xs text-gray-400 mt-2 block">VSched 2 In</label><input type="number" id="v_in_C2" class="input-field mt-1" placeholder="VSched 2" readonly>
+                                        <div id="v_in_C_container" class="space-y-2 mb-2"></div>
                                         <label class="text-xs text-gray-400 mt-2 block">POI Q Output (Mvar)</label><input type="number" id="q_out_C" class="input-field mt-1" placeholder="Total Q at POI">
                                     </div>
                                     <div class="bg-gray-900 p-4 rounded-lg border border-gray-700">
                                         <p class="font-medium text-yellow-400 mb-2">Simulation D</p>
-                                        <label class="text-xs text-gray-400">VSched 1 In</label><input type="number" id="v_in_D1" class="input-field mt-1" placeholder="VSched 1">
-                                        <label class="text-xs text-gray-400 mt-2 block">VSched 2 In</label><input type="number" id="v_in_D2" class="input-field mt-1" placeholder="VSched 2" readonly>
+                                        <div id="v_in_D_container" class="space-y-2 mb-2"></div>
                                         <label class="text-xs text-gray-400 mt-2 block">POI Q Output (Mvar)</label><input type="number" id="q_out_D" class="input-field mt-1" placeholder="Total Q at POI">
                                     </div>
                                 </div>
@@ -277,7 +266,7 @@
                 <!-- STEP 3: FINAL CORRECTION -->
                 <div class="card p-6 border-2 border-blue-500">
                     <h2 class="step-header text-blue-400">Step 3: Final Correction</h2>
-                    <p class="text-sm text-gray-400 mb-6">Calculates the final PGen and VSched inputs for both generators to precisely match both P and Q targets, accounting for coupling effects.</p>
+                    <p class="text-sm text-gray-400 mb-6">Calculates the final PGen and VSched inputs to precisely match both P and Q targets, accounting for coupling effects.</p>
                     
                     <div class="mb-6">
                         <h3 class="font-semibold text-white mb-2">🎯 Your Final POI Targets</h3>
@@ -299,16 +288,14 @@
                          <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
                             <div class="bg-gray-900 p-3 rounded-lg border border-gray-700">
                                  <p class="font-medium text-blue-400 mb-2">Sim E (Current Condition)</p>
-                                 <label class="text-xs">PGen 1 In</label><input type="number" id="p_in_E1" class="input-field my-1" placeholder="Current PGen 1 In">
-                                 <label class="text-xs">PGen 2 In</label><input type="number" id="p_in_E2" class="input-field my-1" placeholder="Calculated" readonly>
+                                 <div id="p_in_E_container" class="space-y-2 mb-2"></div>
                                  <label class="text-xs">Symmetrical VSched In</label><input type="number" id="v_in_E" class="input-field my-1" placeholder="Current VSched In">
                                  <label class="text-xs">POI P Out</label><input type="number" id="p_out_E" class="input-field my-1" placeholder="Current POI P Out">
                                  <label class="text-xs">POI Q Out</label><input type="number" id="q_out_E" class="input-field my-1" placeholder="Current POI Q Out">
                             </div>
                             <div class="bg-gray-900 p-3 rounded-lg border border-gray-700">
                                  <p class="font-medium text-blue-400 mb-2">Sim F (Change PGen In)</p>
-                                 <label class="text-xs">PGen 1 In</label><input type="number" id="p_in_F1" class="input-field my-1" placeholder="PGen 1 In + change">
-                                 <label class="text-xs">PGen 2 In</label><input type="number" id="p_in_F2" class="input-field my-1" placeholder="Calculated" readonly>
+                                 <div id="p_in_F_container" class="space-y-2 mb-2"></div>
                                  <label class="text-xs">POI P Out</label><input type="number" id="p_out_F" class="input-field my-1" placeholder="Resulting POI P">
                                  <label class="text-xs">POI Q Out</label><input type="number" id="q_out_F" class="input-field my-1" placeholder="Resulting POI Q">
                             </div>
@@ -328,16 +315,9 @@
     
                     <div id="finalResultCard" class="mt-6 p-6 bg-gray-900 rounded-lg border border-gray-700 hidden">
                         <h3 class="font-semibold text-white mb-4 text-center">🏆 Recommended Final Inputs:</h3>
-                        <div class="flex flex-col sm:flex-row justify-center items-center gap-6">
-                            <div class="result-box text-center">
-                                <p class="text-sm font-medium text-gray-400">Final PGen 1 Input</p>
-                                <p id="p_in_final_result_1" class="text-3xl font-bold text-green-400 mt-1">-</p>
-                                <p class="text-sm text-gray-500">MW</p>
-                            </div>
-                             <div class="result-box text-center">
-                                <p class="text-sm font-medium text-gray-400">Final PGen 2 Input</p>
-                                <p id="p_in_final_result_2" class="text-3xl font-bold text-green-400 mt-1">-</p>
-                                <p class="text-sm text-gray-500">MW</p>
+                        <div class="flex flex-col md:flex-row justify-center items-center gap-6">
+                            <div id="p_final_result_container" class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                <!-- Dynamically populated -->
                             </div>
                             <div class="result-box text-center">
                                 <p class="text-sm font-medium text-gray-400">Final VSched Input</p>
@@ -382,7 +362,7 @@
 
         <!-- SINGLE GENERATOR CALCULATOR CONTENT -->
         <div id="singleGenCalc" class="calculator-content">
-            <main class="space-y-10">
+             <main class="space-y-10">
                 <div class="text-center">
                     <button id="sg_resetAllBtn" class="btn bg-red-600 hover:bg-red-700 text-white">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-counterclockwise" viewBox="0 0 16 16">
@@ -392,8 +372,6 @@
                         <span>Reset All</span>
                     </button>
                 </div>
-                
-                <!-- GLOBAL TARGETS -->
                 <div class="card p-6 border-2 border-green-500">
                     <h2 class="step-header text-green-400">Global Targets</h2>
                     <p class="text-sm text-gray-400 mb-6">Define your final PGen and QGen targets here. These values will be used throughout the calculation steps.</p>
@@ -408,8 +386,6 @@
                         </div>
                     </div>
                 </div>
-
-                <!-- STEP 1: PGen TUNING -->
                 <div class="card p-6">
                     <h2 class="step-header">Step 1: Initial PGen Estimation</h2>
                     <p class="text-sm text-gray-400 mb-6">Enter data from two simulations to estimate the required `PGen Input` for your global target. Ensure `VSched Input` is constant for this step.</p>
@@ -456,8 +432,6 @@
                         </div>
                     </div>
                 </div>
-
-                <!-- STEP 2: QGen TUNING -->
                 <div class="card p-6">
                     <h2 class="step-header">Step 2: Initial VSched Estimation</h2>
                     <p class="text-sm text-gray-400 mb-6">Use the `PGen Input` from Step 1 as a constant. Now, find the `VSched Input` to meet the global `QGen Output` target. PGen Output may drift slightly.</p>
@@ -504,17 +478,13 @@
                         </div>
                     </div>
                 </div>
-                
-                <!-- STEP 3: FINAL CORRECTION -->
                 <div class="card p-6 border-2 border-blue-500">
                     <h2 class="step-header text-blue-400">Step 3: Final Correction Calculator</h2>
                     <p class="text-sm text-gray-400 mb-6">Use this for high-precision results, accounting for P-Q coupling. It will calculate the final adjustment needed to meet both global targets simultaneously.</p>
-                    
                     <div>
                          <h3 class="font-semibold text-white mb-2">Data from 3 Correction Simulations:</h3>
                          <p class="text-xs text-gray-400 mb-4">Start with your result from Step 2, then slightly change PGen and VSched to get sensitivity data.</p>
                          <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                            <!-- Sim E: Current Condition -->
                             <div class="bg-gray-900 p-3 rounded-lg border border-gray-700">
                                  <p class="font-medium text-blue-400 mb-2">Simulation E (Current Condition)</p>
                                  <label class="text-xs">PGen In</label><input type="number" id="sg_p_in_E" class="input-field my-1" placeholder="Current PGen In">
@@ -522,14 +492,12 @@
                                  <label class="text-xs">PGen Out</label><input type="number" id="sg_p_out_E" class="input-field my-1" placeholder="Current PGen Out">
                                  <label class="text-xs">QGen Out</label><input type="number" id="sg_q_out_E" class="input-field my-1" placeholder="Current QGen Out">
                             </div>
-                            <!-- Sim F: Change PGen -->
                             <div class="bg-gray-900 p-3 rounded-lg border border-gray-700">
                                  <p class="font-medium text-blue-400 mb-2">Simulation F (Change PGen In)</p>
                                  <label class="text-xs">PGen In</label><input type="number" id="sg_p_in_F" class="input-field my-1" placeholder="PGen In + small change">
                                  <label class="text-xs">PGen Out</label><input type="number" id="sg_p_out_F" class="input-field my-1" placeholder="Resulting PGen Out">
                                  <label class="text-xs">QGen Out</label><input type="number" id="sg_q_out_F" class="input-field my-1" placeholder="Resulting QGen Out">
                             </div>
-                            <!-- Sim G: Change VSched -->
                              <div class="bg-gray-900 p-3 rounded-lg border border-gray-700">
                                  <p class="font-medium text-blue-400 mb-2">Simulation G (Change VSched In)</p>
                                  <label class="text-xs">VSched In</label><input type="number" id="sg_v_in_G" class="input-field my-1" placeholder="VSched In + small change">
@@ -538,12 +506,10 @@
                             </div>
                          </div>
                     </div>
-                    
                     <div class="mt-6 flex flex-col md:flex-row gap-4">
                          <button id="sg_calculateFinalBtn" class="btn btn-primary w-full bg-blue-600 hover:bg-blue-700">Calculate Final Correction</button>
                          <button id="sg_resetFinalBtn" class="btn btn-secondary w-full">Reset Step 3</button>
                     </div>
-
                     <div id="sg_finalResultCard" class="mt-6 p-6 bg-gray-900 rounded-lg border border-gray-700 hidden">
                         <h3 class="font-semibold text-white mb-4 text-center">🏆 Recommended Final Results:</h3>
                         <div class="flex flex-col sm:flex-row justify-center items-center gap-6">
@@ -561,8 +527,6 @@
                         <p id="sg_finalErrorMessage" class="mt-4 text-red-400 text-sm font-medium text-center"></p>
                     </div>
                 </div>
-
-                <!-- UTILITY: Qmax Calculator -->
                 <div class="card p-6">
                     <h2 class="step-header">Utility: Qmax Calculator</h2>
                     <p class="text-sm text-gray-400 mb-4">Calculate the Qmax value based on the formula: Qmax = √(S² - P²).</p>
@@ -596,6 +560,7 @@
     <script>
     document.addEventListener('DOMContentLoaded', () => {
         // --- Common Logic ---
+        let numGenerators = 2;
         const interpolate = (y_target, x1, y1, x2, y2) => {
             if (Math.abs(y2 - y1) < 1e-9) throw new Error("Output value did not change. Try using more varied inputs.");
             return x1 + (y_target - y1) * (x2 - x1) / (y2 - y1);
@@ -605,6 +570,10 @@
             let allValid = true;
             ids.forEach(id => {
                 const el = document.getElementById(id);
+                if (!el) { // Handle dynamically removed elements
+                    allValid = false;
+                    return;
+                }
                 const val = parseFloat(el.value);
                 if (isNaN(val)) { el.style.borderColor = 'red'; allValid = false; } 
                 else { el.style.borderColor = ''; values[id] = val; }
@@ -614,256 +583,360 @@
         };
 
         // --- Tab Switching Logic ---
-        const tabDual = document.getElementById('tab-dual');
+        const tabMulti = document.getElementById('tab-multi');
         const tabSingle = document.getElementById('tab-single');
-        const contentDual = document.getElementById('dualGenCalc');
+        const contentMulti = document.getElementById('multiGenCalc');
         const contentSingle = document.getElementById('singleGenCalc');
 
-        tabDual.addEventListener('click', () => {
-            tabDual.classList.add('active');
+        tabMulti.addEventListener('click', () => {
+            tabMulti.classList.add('active');
             tabSingle.classList.remove('active');
-            contentDual.classList.add('active');
+            contentMulti.classList.add('active');
             contentSingle.classList.remove('active');
         });
-
         tabSingle.addEventListener('click', () => {
             tabSingle.classList.add('active');
-            tabDual.classList.remove('active');
+            tabMulti.classList.remove('active');
             contentSingle.classList.add('active');
-            contentDual.classList.remove('active');
+            contentMulti.classList.remove('active');
         });
+        
+        // --- MULTI-GENERATOR CALCULATOR LOGIC ---
 
-        // --- DUAL GENERATOR CALCULATOR LOGIC ---
+        // --- Dynamic UI Rendering ---
+        const renderRatioInputs = () => {
+            const container = document.getElementById('ratio_container');
+            container.innerHTML = '';
+            const initialValue = (100 / numGenerators).toFixed(4);
+            for (let i = 1; i <= numGenerators; i++) {
+                const isLast = (i === numGenerators);
+                container.innerHTML += `
+                    <div>
+                        <label for="ratio_g${i}" class="block text-sm font-medium text-gray-300 mb-1">Gen ${i} Share (%)</label>
+                        <input type="number" id="ratio_g${i}" data-idx="${i}" class="input-field ratio-input" value="${initialValue}" ${isLast ? 'readonly' : ''}>
+                    </div>`;
+            }
+        };
+
+        const renderPGenInputs = (sim) => {
+            const container = document.getElementById(`p_in_${sim}_container`);
+            container.innerHTML = '';
+            for (let i = 1; i <= numGenerators; i++) {
+                container.innerHTML += `
+                    <div class="mb-2">
+                        <label class="text-xs text-gray-400">PGen ${i} In</label>
+                        <input type="number" id="p_in_${sim}${i}" data-sim="${sim}" data-idx="${i}" class="input-field mt-1 p-gen-input" placeholder="PGen ${i}" ${i > 1 ? 'readonly' : ''}>
+                    </div>`;
+            }
+        };
+
+        const renderPGenResults = () => {
+            const container = document.getElementById('p_result_container');
+            container.innerHTML = '';
+            for (let i = 1; i <= numGenerators; i++) {
+                container.innerHTML += `
+                    <div class="result-box text-center p-4">
+                        <p class="text-sm font-medium text-gray-400">Gen ${i} Input</p>
+                        <p id="p_in_result_${i}" class="text-2xl font-bold text-green-400">-</p>
+                        <p class="text-xs text-gray-500">MW</p>
+                    </div>`;
+            }
+        };
+
+        const renderPGenInputsS2 = () => {
+            const container = document.getElementById('p_in_s2_container');
+            container.innerHTML = '';
+            for (let i = 1; i <= numGenerators; i++) {
+                container.innerHTML += `<input type="number" id="p_in_${i}_s2" class="input-field" placeholder="PGen ${i}" readonly>`;
+            }
+        };
+
+        const renderVSchedInputs = (sim) => {
+            const container = document.getElementById(`v_in_${sim}_container`);
+            container.innerHTML = '';
+            const isSymmetrical = document.getElementById('symm_v_s2').checked;
+            for (let i = 1; i <= numGenerators; i++) {
+                 container.innerHTML += `
+                    <div>
+                        <label class="text-xs text-gray-400">VSched ${i} In</label>
+                        <input type="number" id="v_in_${sim}${i}" data-sim="${sim}" data-idx="${i}" class="input-field mt-1 v-sched-input" placeholder="VSched ${i}" ${isSymmetrical && i > 1 ? 'readonly' : ''}>
+                    </div>`;
+            }
+        };
+
+        const renderFinalPGenResults = () => {
+            const container = document.getElementById('p_final_result_container');
+            container.innerHTML = '';
+            for (let i = 1; i <= numGenerators; i++) {
+                container.innerHTML += `
+                    <div class="result-box text-center">
+                        <p class="text-sm font-medium text-gray-400">Final PGen ${i} Input</p>
+                        <p id="p_in_final_result_${i}" class="text-3xl font-bold text-green-400 mt-1">-</p>
+                        <p class="text-sm text-gray-500">MW</p>
+                    </div>`;
+            }
+        };
+        
+        const initMultiGenUI = () => {
+            numGenerators = parseInt(document.getElementById('num_generators').value, 10);
+            renderRatioInputs();
+            ['A', 'B', 'E', 'F'].forEach(sim => renderPGenInputs(sim));
+            renderPGenResults();
+            renderPGenInputsS2();
+            ['C', 'D'].forEach(sim => renderVSchedInputs(sim));
+            renderFinalPGenResults();
+            updateAllAsymmetricalP();
+        };
+
+
+        // --- Event Handlers & Logic ---
+        const getRatioFactors = () => {
+            const baseRatioEl = document.getElementById('ratio_g1');
+            if (!baseRatioEl) return Array(numGenerators).fill(0);
+            const baseRatio = parseFloat(baseRatioEl.value) || 0;
+            if (baseRatio === 0) return Array(numGenerators).fill(0);
+            const factors = [1.0];
+            for (let i = 2; i <= numGenerators; i++) {
+                const currentRatio = parseFloat(document.getElementById(`ratio_g${i}`).value) || 0;
+                factors.push(currentRatio / baseRatio);
+            }
+            return factors;
+        };
+        
+        const updateAllAsymmetricalP = () => {
+            const factors = getRatioFactors();
+            ['A', 'B', 'E', 'F'].forEach(sim => {
+                const pGen1El = document.getElementById(`p_in_${sim}1`);
+                if (pGen1El) {
+                    const pGen1Val = parseFloat(pGen1El.value);
+                    if (!isNaN(pGen1Val)) {
+                        for (let i = 2; i <= numGenerators; i++) {
+                            const targetEl = document.getElementById(`p_in_${sim}${i}`);
+                            if(targetEl) targetEl.value = (pGen1Val * factors[i-1]).toFixed(10);
+                        }
+                    } else {
+                         for (let i = 2; i <= numGenerators; i++) {
+                            const targetEl = document.getElementById(`p_in_${sim}${i}`);
+                            if(targetEl) targetEl.value = '';
+                        }
+                    }
+                }
+            });
+        };
+
+        const handleRatioChange = () => {
+            let sum = 0;
+            const ratioInputs = document.querySelectorAll('#ratio_container .ratio-input');
+            for (let i = 0; i < numGenerators - 1; i++) {
+                 sum += parseFloat(ratioInputs[i].value) || 0;
+            }
+            if (sum > 100) sum = 100;
+            if(ratioInputs[numGenerators - 1]) {
+                ratioInputs[numGenerators - 1].value = (100 - sum).toFixed(4);
+            }
+            updateAllAsymmetricalP();
+        };
+
+        const handleSymmetryChange = () => {
+            ['C', 'D'].forEach(sim => renderVSchedInputs(sim));
+        };
         
         // --- Global Target Sync Logic ---
         const globalPTarget = document.getElementById('global_p_target');
         const globalQTarget = document.getElementById('global_q_target');
-        const pTargetS1 = document.getElementById('p_out_target_s1');
-        const qTargetS2 = document.getElementById('q_out_target_s2');
-        const pTargetS3 = document.getElementById('p_out_target_s3');
-        const qTargetS3 = document.getElementById('q_out_target_s3');
-
         globalPTarget.addEventListener('input', () => {
-            pTargetS1.value = globalPTarget.value;
-            pTargetS3.value = globalPTarget.value;
+            document.getElementById('p_out_target_s1').value = globalPTarget.value;
+            document.getElementById('p_out_target_s3').value = globalPTarget.value;
         });
         globalQTarget.addEventListener('input', () => {
-            qTargetS2.value = globalQTarget.value;
-            qTargetS3.value = globalQTarget.value;
+            document.getElementById('q_out_target_s2').value = globalQTarget.value;
+            document.getElementById('q_out_target_s3').value = globalQTarget.value;
         });
 
-        // --- Ratio & Asymmetry Logic ---
-        const ratioG1 = document.getElementById('ratio_g1');
-        const ratioG2 = document.getElementById('ratio_g2');
-
-        const getRatio = () => {
-            const r1 = parseFloat(ratioG1.value) || 50;
-            const r2 = parseFloat(ratioG2.value) || 50;
-            if (r1 <= 0) return { r1: 1, r2: 0, factor: 0 }; // Avoid division by zero
-            return { r1, r2, factor: r2 / r1 };
-        };
-        
-        const updateAsymmetricalP = (sourceId, targetId) => {
-            const sourceEl = document.getElementById(sourceId);
-            const targetEl = document.getElementById(targetId);
-            const sourceVal = parseFloat(sourceEl.value);
-            const { factor } = getRatio();
-            if (!isNaN(sourceVal)) {
-                targetEl.value = (sourceVal * factor).toFixed(10);
-            } else {
-                targetEl.value = '';
-            }
-        };
-        
-        const updateAllAsymmetricalP = () => {
-             updateAsymmetricalP('p_in_A1', 'p_in_A2');
-             updateAsymmetricalP('p_in_B1', 'p_in_B2');
-             updateAsymmetricalP('p_in_E1', 'p_in_E2');
-             updateAsymmetricalP('p_in_F1', 'p_in_F2');
-        };
-        
-        ratioG1.addEventListener('input', () => {
-            let val1 = parseFloat(ratioG1.value);
-            if (isNaN(val1) || val1 < 0) val1 = 0;
-            if (val1 > 100) val1 = 100;
-            ratioG2.value = (100 - val1).toFixed(10);
-            updateAllAsymmetricalP();
-        });
-
-        ['p_in_A1', 'p_in_B1', 'p_in_E1', 'p_in_F1'].forEach(id => {
-            document.getElementById(id).addEventListener('input', () => {
-                const targetId = id.replace('1', '2');
-                updateAsymmetricalP(id, targetId);
-            });
-        });
-
-        // --- Symmetry Checkbox Logic ---
-        const setupSymmetry = (checkId, input1Id, input2Id) => {
-            const check = document.getElementById(checkId);
-            const input1 = document.getElementById(input1Id);
-            const input2 = document.getElementById(input2Id);
-            const update = () => {
-                if (check.checked) {
-                    input2.value = input1.value;
-                    input2.readOnly = true;
-                    input2.classList.add('bg-gray-600', 'cursor-not-allowed');
-                } else {
-                    input2.readOnly = false;
-                    input2.classList.remove('bg-gray-600', 'cursor-not-allowed');
-                }
-            };
-            check.addEventListener('change', update);
-            input1.addEventListener('input', update);
-            update();
-        };
-        setupSymmetry('symm_v_s2', 'v_in_C1', 'v_in_C2');
-        setupSymmetry('symm_v_s2', 'v_in_D1', 'v_in_D2');
-
-        // --- PGen Calculator (Step 1) ---
+        // --- Step 1: PGen Calculation ---
         document.getElementById('calculatePBtn').addEventListener('click', () => {
             const resultCard = document.getElementById('pResultCard');
-            const resultEl1 = document.getElementById('p_in_result_1');
-            const resultEl2 = document.getElementById('p_in_result_2');
             const errorEl = document.getElementById('pErrorMessage');
-            const nextStepEl = document.getElementById('pNextStep');
             resultCard.classList.remove('hidden');
             try {
                 const v = getValues(['p_out_target_s1', 'p_in_A1', 'p_out_A', 'p_in_B1', 'p_out_B']);
                 const p_in_target_1 = interpolate(v.p_out_target_s1, v.p_in_A1, v.p_out_A, v.p_in_B1, v.p_out_B);
-                const { factor } = getRatio();
-                const p_in_target_2 = p_in_target_1 * factor;
-
-                resultEl1.textContent = p_in_target_1.toFixed(10);
-                resultEl2.textContent = p_in_target_2.toFixed(10);
+                const factors = getRatioFactors();
+                
+                for(let i=1; i<=numGenerators; i++){
+                     document.getElementById(`p_in_result_${i}`).textContent = (p_in_target_1 * factors[i-1]).toFixed(10);
+                }
                 errorEl.textContent = '';
-                nextStepEl.classList.remove('hidden');
+                document.getElementById('pNextStep').classList.remove('hidden');
             } catch (e) {
-                resultEl1.textContent = '-';
-                resultEl2.textContent = '-';
+                 for(let i=1; i<=numGenerators; i++) {
+                     const el = document.getElementById(`p_in_result_${i}`);
+                     if (el) el.textContent = '-';
+                 }
                 errorEl.textContent = e.message;
-                nextStepEl.classList.add('hidden');
+                document.getElementById('pNextStep').classList.add('hidden');
             }
         });
-        const resetPSection = () => {
-            ['p_in_A1', 'p_in_A2', 'p_out_A', 'p_in_B1', 'p_in_B2', 'p_out_B'].forEach(id => {
-                if(document.getElementById(id)) document.getElementById(id).value = '';
-            });
-            document.getElementById('pResultCard').classList.add('hidden');
-            document.getElementById('pNextStep').classList.add('hidden');
-        };
-        document.getElementById('resetPBtn').addEventListener('click', resetPSection);
-        
+
         document.getElementById('useForStep2Btn').addEventListener('click', () => {
             const p1 = document.getElementById('p_in_result_1').textContent;
             if (p1 !== '-') {
-                document.getElementById('p_in_1_s2').value = p1;
-                document.getElementById('p_in_2_s2').value = document.getElementById('p_in_result_2').textContent;
+                for(let i=1; i<=numGenerators; i++){
+                    document.getElementById(`p_in_${i}_s2`).value = document.getElementById(`p_in_result_${i}`).textContent;
+                }
                 document.getElementById('p_in_1_s2').scrollIntoView({ behavior: 'smooth', block: 'center' });
             } else {
                  alert("Please calculate a valid result in Step 1 first.");
             }
         });
-
-        // --- QGen Calculator (Step 2) ---
+        
+        // --- Step 2: QGen Calculation ---
         document.getElementById('calculateQBtn').addEventListener('click', () => {
             const resultCard = document.getElementById('qResultCard');
-            const resultEl = document.getElementById('v_in_result');
             const errorEl = document.getElementById('qErrorMessage');
             resultCard.classList.remove('hidden');
             try {
-                const v = getValues(['p_in_1_s2', 'p_in_2_s2', 'q_out_target_s2', 'v_in_C1', 'q_out_C', 'v_in_D1', 'q_out_D']);
+                const pGenInputsS2 = Array.from({length: numGenerators}, (_, i) => `p_in_${i+1}_s2`);
+                const v = getValues([...pGenInputsS2, 'q_out_target_s2', 'v_in_C1', 'q_out_C', 'v_in_D1', 'q_out_D']);
                 const v_in_target = interpolate(v.q_out_target_s2, v.v_in_C1, v.q_out_C, v.v_in_D1, v.q_out_D);
-                resultEl.textContent = v_in_target.toFixed(10);
+                document.getElementById('v_in_result').textContent = v_in_target.toFixed(10);
                 errorEl.textContent = '';
             } catch (e) {
-                resultEl.textContent = '-';
+                document.getElementById('v_in_result').textContent = '-';
                 errorEl.textContent = e.message;
             }
         });
-        const resetQSection = () => {
-            ['p_in_1_s2', 'p_in_2_s2', 'v_in_C1', 'v_in_C2', 'q_out_C', 'v_in_D1', 'v_in_D2', 'q_out_D'].forEach(id => {
-                if(document.getElementById(id)) document.getElementById(id).value = '';
-            });
-            document.getElementById('qResultCard').classList.add('hidden');
-        };
-        document.getElementById('resetQBtn').addEventListener('click', resetQSection);
 
         document.getElementById('useForStep3Btn').addEventListener('click', () => {
-            const pInS2_1 = document.getElementById('p_in_1_s2').value;
             const vInResult = document.getElementById('v_in_result').textContent;
-            
-            if (pInS2_1 && vInResult !== '-') {
-                document.getElementById('p_in_E1').value = parseFloat(pInS2_1).toFixed(10);
-                updateAsymmetricalP('p_in_E1', 'p_in_E2');
+            if (vInResult !== '-') {
+                const factors = getRatioFactors();
+                const p1_s2_val = parseFloat(document.getElementById('p_in_1_s2').value);
+                if(isNaN(p1_s2_val)) {
+                    alert("Please complete Step 1 first.");
+                    return;
+                }
+                for(let i=1; i<=numGenerators; i++){
+                     document.getElementById(`p_in_E${i}`).value = (p1_s2_val * factors[i-1]).toFixed(10);
+                }
                 document.getElementById('v_in_E').value = parseFloat(vInResult).toFixed(10);
                 document.getElementById('p_in_E1').scrollIntoView({ behavior: 'smooth', block: 'center' });
             } else {
                 alert("Please complete Steps 1 and 2 first.");
             }
         });
-
-        // --- Final Correction Calculator (Step 3) ---
+        
+        // --- Step 3: Final Correction ---
         document.getElementById('calculateFinalBtn').addEventListener('click', () => {
              const resultCard = document.getElementById('finalResultCard');
-             const pResultEl1 = document.getElementById('p_in_final_result_1');
-             const pResultEl2 = document.getElementById('p_in_final_result_2');
-             const vResultEl = document.getElementById('v_in_final_result');
              const errorEl = document.getElementById('finalErrorMessage');
              resultCard.classList.remove('hidden');
-
              try {
-                const v = getValues([
-                    'p_out_target_s3', 'q_out_target_s3', 'p_in_E1', 'v_in_E', 'p_out_E', 'q_out_E',
-                    'p_in_F1', 'p_out_F', 'q_out_F', 'v_in_G', 'p_out_G', 'q_out_G'
-                ]);
-
+                const v = getValues(['p_out_target_s3', 'q_out_target_s3', 'p_in_E1', 'v_in_E', 'p_out_E', 'q_out_E', 'p_in_F1', 'p_out_F', 'q_out_F', 'v_in_G', 'p_out_G', 'q_out_G']);
                 const dp_in = v.p_in_F1 - v.p_in_E1;
                 const dv_in = v.v_in_G - v.v_in_E;
                 if (Math.abs(dp_in) < 1e-6 || Math.abs(dv_in) < 1e-6) throw new Error("Input change for simulation F or G is too small.");
-
                 const J11 = (v.p_out_F - v.p_out_E) / dp_in;
                 const J21 = (v.q_out_F - v.q_out_E) / dp_in;
                 const J12 = (v.p_out_G - v.p_out_E) / dv_in;
                 const J22 = (v.q_out_G - v.q_out_E) / dv_in;
-
                 const determinant = J11 * J22 - J12 * J21;
                 if (Math.abs(determinant) < 1e-9) throw new Error("System cannot be solved (singular matrix). Try different input changes.");
-
                 const error_p = v.p_out_target_s3 - v.p_out_E;
                 const error_q = v.q_out_target_s3 - v.q_out_E;
-
                 const delta_p_in = (J22 * error_p - J12 * error_q) / determinant;
                 const delta_v_in = (-J21 * error_p + J11 * error_q) / determinant;
-                
-                const { factor } = getRatio();
                 const p_final_1 = v.p_in_E1 + delta_p_in;
-                const p_final_2 = p_final_1 * factor;
                 const v_final = v.v_in_E + delta_v_in;
+                const factors = getRatioFactors();
 
-                pResultEl1.textContent = p_final_1.toFixed(10);
-                pResultEl2.textContent = p_final_2.toFixed(10);
-                vResultEl.textContent = v_final.toFixed(10);
+                for(let i=1; i<=numGenerators; i++) {
+                    const el = document.getElementById(`p_in_final_result_${i}`);
+                    if(el) el.textContent = (p_final_1 * factors[i-1]).toFixed(10);
+                }
+                document.getElementById('v_in_final_result').textContent = v_final.toFixed(10);
                 errorEl.textContent = '';
              } catch(e) {
-                pResultEl1.textContent = '-';
-                pResultEl2.textContent = '-';
-                vResultEl.textContent = '-';
+                for(let i=1; i<=numGenerators; i++) {
+                    const el = document.getElementById(`p_in_final_result_${i}`);
+                    if(el) el.textContent = '-';
+                }
+                document.getElementById('v_in_final_result').textContent = '-';
                 errorEl.textContent = e.message;
              }
         });
-        const resetFinalSection = () => {
-            const ids = ['p_in_E1', 'p_in_E2', 'v_in_E', 'p_out_E', 'q_out_E', 'p_in_F1', 'p_in_F2', 'p_out_F', 'q_out_F', 'v_in_G', 'p_out_G', 'q_out_G'];
-            ids.forEach(id => document.getElementById(id).value = '');
-            document.getElementById('finalResultCard').classList.add('hidden');
-        };
-         document.getElementById('resetFinalBtn').addEventListener('click', resetFinalSection);
 
-        // --- Qmax Calculator ---
-        const resetQmaxSection = () => {
-            document.getElementById('qmax_s').value = ''; 
+        // --- Event Listeners Setup ---
+        document.getElementById('num_generators').addEventListener('change', initMultiGenUI);
+        document.querySelector('body').addEventListener('input', (e) => {
+            if (e.target.classList.contains('ratio-input')) handleRatioChange();
+            if (e.target.id === 'p_in_A1' || e.target.id === 'p_in_B1' || e.target.id === 'p_in_E1' || e.target.id === 'p_in_F1') updateAllAsymmetricalP();
+            if (e.target.id === 'symm_v_s2') handleSymmetryChange();
+            if (e.target.classList.contains('v-sched-input') && document.getElementById('symm_v_s2').checked && e.target.dataset.idx === '1') {
+                const sim = e.target.dataset.sim;
+                for(let i = 2; i <= numGenerators; i++) {
+                    const el = document.getElementById(`v_in_${sim}${i}`);
+                    if(el) el.value = e.target.value;
+                }
+            }
+        });
+        
+        // --- Reset and Utility Buttons ---
+        const resetAllMultiGen = () => {
+            document.getElementById('global_p_target').value = '';
+            document.getElementById('global_q_target').value = '';
+            document.getElementById('global_p_target').dispatchEvent(new Event('input'));
+            document.getElementById('num_generators').value = '2';
+            initMultiGenUI();
+            ['pResultCard', 'qResultCard', 'finalResultCard', 'qmaxResultCard'].forEach(id => document.getElementById(id).classList.add('hidden'));
+            document.getElementById('qmax_s').value = '';
             document.getElementById('qmax_p').value = '';
-            document.getElementById('qmaxResultCard').classList.add('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         };
+        document.getElementById('resetAllBtn').addEventListener('click', resetAllMultiGen);
+        document.getElementById('resetPBtn').addEventListener('click', () => {
+             ['A','B'].forEach(sim => {
+                for(let i=1; i<=numGenerators; i++) {
+                    const el = document.getElementById(`p_in_${sim}${i}`);
+                    if (el) el.value = '';
+                }
+            });
+            document.getElementById('p_out_A').value = '';
+            document.getElementById('p_out_B').value = '';
+            document.getElementById('pResultCard').classList.add('hidden');
+        });
+        document.getElementById('resetQBtn').addEventListener('click', () => {
+            for(let i=1; i<=numGenerators; i++) {
+                const el = document.getElementById(`p_in_${i}_s2`);
+                if(el) el.value = '';
+            }
+            ['C','D'].forEach(sim => {
+                for(let i=1; i<=numGenerators; i++) {
+                    const el = document.getElementById(`v_in_${sim}${i}`);
+                    if(el) el.value = '';
+                }
+            });
+            document.getElementById('q_out_C').value = '';
+            document.getElementById('q_out_D').value = '';
+            document.getElementById('qResultCard').classList.add('hidden');
+        });
+        document.getElementById('resetFinalBtn').addEventListener('click', () => {
+             ['E','F'].forEach(sim => {
+                for(let i=1; i<=numGenerators; i++) {
+                    const el = document.getElementById(`p_in_${sim}${i}`);
+                    if (el) el.value = '';
+                }
+            });
+            ['E','F','G'].forEach(sim => {
+                const pOutEl = document.getElementById(`p_out_${sim}`);
+                if (pOutEl) pOutEl.value = '';
+                const qOutEl = document.getElementById(`q_out_${sim}`);
+                if (qOutEl) qOutEl.value = '';
+            });
+            document.getElementById('v_in_E').value = '';
+            document.getElementById('v_in_G').value = '';
+            document.getElementById('finalResultCard').classList.add('hidden');
+        });
         document.getElementById('calculateQmaxBtn').addEventListener('click', () => {
             try {
                 const v = getValues(['qmax_s', 'qmax_p']);
@@ -877,82 +950,44 @@
             }
             document.getElementById('qmaxResultCard').classList.remove('hidden');
         });
-        document.getElementById('resetQmaxBtn').addEventListener('click', resetQmaxSection);
-
-        // --- Reset All Button ---
-        document.getElementById('resetAllBtn').addEventListener('click', () => {
-            globalPTarget.value = '';
-            globalQTarget.value = '';
-            globalPTarget.dispatchEvent(new Event('input'));
-            
-            ratioG1.value = '50';
-            ratioG1.dispatchEvent(new Event('input'));
-
-            resetPSection();
-            resetQSection();
-            resetFinalSection();
-            resetQmaxSection();
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+        document.getElementById('resetQmaxBtn').addEventListener('click', () => {
+            document.getElementById('qmax_s').value = '';
+            document.getElementById('qmax_p').value = '';
+            document.getElementById('qmaxResultCard').classList.add('hidden');
         });
 
 
-        // --- SINGLE GENERATOR CALCULATOR LOGIC ---
-
-        // --- Global Target Logic ---
-        const sg_pTargetGlobalEl = document.getElementById('sg_p_out_target_global');
-        sg_pTargetGlobalEl.addEventListener('change', () => {
-            const val = parseFloat(sg_pTargetGlobalEl.value);
-            if (!isNaN(val) && val > 1e-9) sg_pTargetGlobalEl.value = -Math.abs(val);
-        });
-
-        // --- PGen Calculator (Step 1) ---
+        // --- SINGLE GENERATOR LOGIC ---
         document.getElementById('sg_calculatePBtn').addEventListener('click', () => {
             const resultCard = document.getElementById('sg_pResultCard');
-            const resultEl = document.getElementById('sg_p_in_result');
             const errorEl = document.getElementById('sg_pErrorMessage');
-            const nextStepEl = document.getElementById('sg_pNextStep');
             resultCard.classList.remove('hidden');
             try {
                 const v = getValues(['sg_p_out_target_global', 'sg_p_in_A', 'sg_p_out_A', 'sg_p_in_B', 'sg_p_out_B']);
                 const p_in_target = interpolate(v.sg_p_out_target_global, v.sg_p_in_A, v.sg_p_out_A, v.sg_p_in_B, v.sg_p_out_B);
-                resultEl.textContent = p_in_target.toFixed(10);
+                document.getElementById('sg_p_in_result').textContent = p_in_target.toFixed(10);
                 errorEl.textContent = '';
-                nextStepEl.classList.remove('hidden');
+                document.getElementById('sg_pNextStep').classList.remove('hidden');
             } catch (e) {
-                resultEl.textContent = '-';
+                document.getElementById('sg_p_in_result').textContent = '-';
                 errorEl.textContent = e.message;
-                nextStepEl.classList.add('hidden');
+                document.getElementById('sg_pNextStep').classList.add('hidden');
             }
         });
-        const sg_resetPSection = () => {
-            ['sg_p_in_A', 'sg_p_out_A', 'sg_p_in_B', 'sg_p_out_B'].forEach(id => document.getElementById(id).value = '');
-            document.getElementById('sg_pResultCard').classList.add('hidden');
-            document.getElementById('sg_pNextStep').classList.add('hidden');
-        };
-        document.getElementById('sg_resetPBtn').addEventListener('click', sg_resetPSection);
-
-        // --- QGen Calculator (Step 2) ---
         document.getElementById('sg_calculateQBtn').addEventListener('click', () => {
             const resultCard = document.getElementById('sg_qResultCard');
-            const resultEl = document.getElementById('sg_v_in_result');
             const errorEl = document.getElementById('sg_qErrorMessage');
             resultCard.classList.remove('hidden');
             try {
                 const v = getValues(['sg_p_in_s2', 'sg_q_out_target_global', 'sg_v_in_C', 'sg_q_out_C', 'sg_v_in_D', 'sg_q_out_D']);
                 const v_in_target = interpolate(v.sg_q_out_target_global, v.sg_v_in_C, v.sg_q_out_C, v.sg_v_in_D, v.sg_q_out_D);
-                resultEl.textContent = v_in_target.toFixed(10);
+                document.getElementById('sg_v_in_result').textContent = v_in_target.toFixed(10);
                 errorEl.textContent = '';
             } catch (e) {
-                resultEl.textContent = '-';
+                document.getElementById('sg_v_in_result').textContent = '-';
                 errorEl.textContent = e.message;
             }
         });
-        const sg_resetQSection = () => {
-            ['sg_p_in_s2', 'sg_v_in_C', 'sg_q_out_C', 'sg_v_in_D', 'sg_q_out_D'].forEach(id => document.getElementById(id).value = '');
-            document.getElementById('sg_qResultCard').classList.add('hidden');
-        };
-        document.getElementById('sg_resetQBtn').addEventListener('click', sg_resetQSection);
-
         document.getElementById('sg_useForStep3Btn').addEventListener('click', () => {
             const pInS2 = document.getElementById('sg_p_in_s2').value;
             const vInResult = document.getElementById('sg_v_in_result').textContent;
@@ -960,62 +995,36 @@
                 document.getElementById('sg_p_in_E').value = parseFloat(pInS2).toFixed(10);
                 document.getElementById('sg_v_in_E').value = parseFloat(vInResult).toFixed(10);
                 document.getElementById('sg_p_in_E').scrollIntoView({ behavior: 'smooth', block: 'center' });
-            } else {
-                alert("Please calculate a valid result in Step 2 first.");
-            }
+            } else { alert("Please calculate a valid result in Step 2 first."); }
         });
-
-        // --- Final Correction Calculator (Step 3) ---
         document.getElementById('sg_calculateFinalBtn').addEventListener('click', () => {
              const resultCard = document.getElementById('sg_finalResultCard');
-             const pResultEl = document.getElementById('sg_p_in_final_result');
-             const vResultEl = document.getElementById('sg_v_in_final_result');
              const errorEl = document.getElementById('sg_finalErrorMessage');
              resultCard.classList.remove('hidden');
              try {
-                const v = getValues([
-                    'sg_p_out_target_global', 'sg_q_out_target_global', 'sg_p_in_E', 'sg_v_in_E', 'sg_p_out_E', 'sg_q_out_E',
-                    'sg_p_in_F', 'sg_p_out_F', 'sg_q_out_F', 'sg_v_in_G', 'sg_p_out_G', 'sg_q_out_G'
-                ]);
-
+                const v = getValues(['sg_p_out_target_global', 'sg_q_out_target_global', 'sg_p_in_E', 'sg_v_in_E', 'sg_p_out_E', 'sg_q_out_E', 'sg_p_in_F', 'sg_p_out_F', 'sg_q_out_F', 'sg_v_in_G', 'sg_p_out_G', 'sg_q_out_G']);
                 const dp_in = v.sg_p_in_F - v.sg_p_in_E;
                 const dv_in = v.sg_v_in_G - v.sg_v_in_E;
                 if (Math.abs(dp_in) < 1e-6 || Math.abs(dv_in) < 1e-6) throw new Error("Input change for simulation F or G is too small.");
-
                 const J11 = (v.sg_p_out_F - v.sg_p_out_E) / dp_in;
                 const J21 = (v.sg_q_out_F - v.sg_q_out_E) / dp_in;
                 const J12 = (v.sg_p_out_G - v.sg_p_out_E) / dv_in;
                 const J22 = (v.sg_q_out_G - v.sg_q_out_E) / dv_in;
                 const determinant = J11 * J22 - J12 * J21;
                 if (Math.abs(determinant) < 1e-9) throw new Error("System cannot be solved (singular matrix).");
-
                 const error_p = v.sg_p_out_target_global - v.sg_p_out_E;
                 const error_q = v.sg_q_out_target_global - v.sg_q_out_E;
                 const delta_p_in = (J22 * error_p - J12 * error_q) / determinant;
                 const delta_v_in = (-J21 * error_p + J11 * error_q) / determinant;
-                
-                pResultEl.textContent = (v.sg_p_in_E + delta_p_in).toFixed(10);
-                vResultEl.textContent = (v.sg_v_in_E + delta_v_in).toFixed(10);
+                document.getElementById('sg_p_in_final_result').textContent = (v.sg_p_in_E + delta_p_in).toFixed(10);
+                document.getElementById('sg_v_in_final_result').textContent = (v.sg_v_in_E + delta_v_in).toFixed(10);
                 errorEl.textContent = '';
              } catch(e) {
-                pResultEl.textContent = '-';
-                vResultEl.textContent = '-';
+                document.getElementById('sg_p_in_final_result').textContent = '-';
+                document.getElementById('sg_v_in_final_result').textContent = '-';
                 errorEl.textContent = e.message;
              }
         });
-        const sg_resetFinalSection = () => {
-            const ids = ['sg_p_in_E', 'sg_v_in_E', 'sg_p_out_E', 'sg_q_out_E', 'sg_p_in_F', 'sg_p_out_F', 'sg_q_out_F', 'sg_v_in_G', 'sg_p_out_G', 'sg_q_out_G'];
-            ids.forEach(id => document.getElementById(id).value = '');
-            document.getElementById('sg_finalResultCard').classList.add('hidden');
-        };
-         document.getElementById('sg_resetFinalBtn').addEventListener('click', sg_resetFinalSection);
-
-        // --- Qmax Calculator ---
-        const sg_resetQmaxSection = () => {
-            document.getElementById('sg_qmax_s').value = ''; 
-            document.getElementById('sg_qmax_p').value = '';
-            document.getElementById('sg_qmaxResultCard').classList.add('hidden');
-        };
         document.getElementById('sg_calculateQmaxBtn').addEventListener('click', () => {
             try {
                 const v = getValues(['sg_qmax_s', 'sg_qmax_p']);
@@ -1029,21 +1038,23 @@
             }
             document.getElementById('sg_qmaxResultCard').classList.remove('hidden');
         });
-        document.getElementById('sg_resetQmaxBtn').addEventListener('click', sg_resetQmaxSection);
-
-        // --- Reset All Button ---
-        document.getElementById('sg_resetAllBtn').addEventListener('click', () => {
+        document.getElementById('sg_resetQmaxBtn').addEventListener('click', () => {
+            document.getElementById('sg_qmax_s').value = '';
+            document.getElementById('sg_qmax_p').value = '';
+            document.getElementById('sg_qmaxResultCard').classList.add('hidden');
+        });
+         document.getElementById('sg_resetAllBtn').addEventListener('click', () => {
             document.getElementById('sg_p_out_target_global').value = '';
             document.getElementById('sg_q_out_target_global').value = '';
-            sg_resetPSection();
-            sg_resetQSection();
-            sg_resetFinalSection();
-            sg_resetQmaxSection();
+            ['sg_p_in_A', 'sg_p_out_A', 'sg_p_in_B', 'sg_p_out_B', 'sg_p_in_s2', 'sg_v_in_C', 'sg_q_out_C', 'sg_v_in_D', 'sg_q_out_D','sg_p_in_E', 'sg_v_in_E', 'sg_p_out_E', 'sg_q_out_E', 'sg_p_in_F', 'sg_p_out_F', 'sg_q_out_F', 'sg_v_in_G', 'sg_p_out_G', 'sg_q_out_G', 'sg_qmax_s', 'sg_qmax_p'].forEach(id => document.getElementById(id).value = '');
+            ['sg_pResultCard', 'sg_qResultCard', 'sg_finalResultCard', 'sg_qmaxResultCard'].forEach(id => document.getElementById(id).classList.add('hidden'));
             window.scrollTo({ top: 0, behavior: 'smooth' });
         });
+
+        // Initial Page Load
+        initMultiGenUI();
     });
     </script>
 </body>
 </html>
-
 
