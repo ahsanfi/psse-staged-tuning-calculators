@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale-1.0">
     <title>Staged Tuning Calculators</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -97,6 +97,9 @@
         }
         .calculator-content.active {
             display: block;
+        }
+        .long-number {
+            word-break: break-all;
         }
     </style>
 </head>
@@ -254,7 +257,7 @@
                             <div id="qResultCard" class="mt-6 p-6 flex-grow flex flex-col justify-center items-center bg-gray-900 rounded-lg border border-gray-700 hidden">
                                  <h3 class="font-semibold text-white mb-3 text-center">✅ Est. Symmetrical VSched Input (per Gen):</h3>
                                  <div class="result-box text-center">
-                                    <p id="v_in_result" class="text-3xl font-bold text-yellow-400">-</p>
+                                    <p id="v_in_result" class="text-3xl font-bold text-yellow-400 long-number">-</p>
                                     <p class="text-sm text-gray-500">pu</p>
                                  </div>
                                  <p id="qErrorMessage" class="mt-4 text-red-400 text-sm font-medium text-center"></p>
@@ -322,7 +325,7 @@
                             </div>
                             <div class="result-box text-center">
                                 <p class="text-sm font-medium text-gray-400">Final VSched Input</p>
-                                <p id="v_in_final_result" class="text-3xl font-bold text-yellow-400 mt-1">-</p>
+                                <p id="v_in_final_result" class="text-3xl font-bold text-yellow-400 mt-1 long-number">-</p>
                                 <p class="text-sm text-gray-500">pu</p>
                             </div>
                         </div>
@@ -394,7 +397,7 @@
                             <div id="sg_pResultCard" class="mt-6 p-6 flex-grow flex flex-col justify-center items-center bg-gray-900 rounded-lg border border-gray-700 hidden">
                                  <h3 class="font-semibold text-white mb-3 text-center">✅ Estimated PGen Input:</h3>
                                  <div class="result-box text-center">
-                                    <p id="sg_p_in_result" class="text-3xl font-bold text-green-400">-</p>
+                                    <p id="sg_p_in_result" class="text-3xl font-bold text-green-400 long-number">-</p>
                                     <p class="text-sm text-gray-500">MW</p>
                                  </div>
                                  <p id="sg_pErrorMessage" class="mt-4 text-red-400 text-sm font-medium text-center"></p>
@@ -442,7 +445,7 @@
                             <div id="sg_qResultCard" class="mt-6 p-6 flex-grow flex flex-col justify-center items-center bg-gray-900 rounded-lg border border-gray-700 hidden">
                                  <h3 class="font-semibold text-white mb-3 text-center">✅ Estimated VSched Input:</h3>
                                  <div class="result-box text-center">
-                                    <p id="sg_v_in_result" class="text-3xl font-bold text-yellow-400">-</p>
+                                    <p id="sg_v_in_result" class="text-3xl font-bold text-yellow-400 long-number">-</p>
                                     <p class="text-sm text-gray-500">pu</p>
                                  </div>
                                  <p id="sg_qErrorMessage" class="mt-4 text-red-400 text-sm font-medium text-center"></p>
@@ -488,12 +491,12 @@
                         <div class="flex flex-col sm:flex-row justify-center items-center gap-6">
                             <div class="result-box text-center">
                                 <p class="text-sm font-medium text-gray-400">Final PGen Input</p>
-                                <p id="sg_p_in_final_result" class="text-3xl font-bold text-green-400 mt-1">-</p>
+                                <p id="sg_p_in_final_result" class="text-3xl font-bold text-green-400 mt-1 long-number">-</p>
                                 <p class="text-sm text-gray-500">MW</p>
                             </div>
                             <div class="result-box text-center">
                                 <p class="text-sm font-medium text-gray-400">Final VSched Input</p>
-                                <p id="sg_v_in_final_result" class="text-3xl font-bold text-yellow-400 mt-1">-</p>
+                                <p id="sg_v_in_final_result" class="text-3xl font-bold text-yellow-400 mt-1 long-number">-</p>
                                 <p class="text-sm text-gray-500">pu</p>
                             </div>
                         </div>
@@ -527,7 +530,7 @@
                     <div id="util_qmaxResultCard" class="mt-6 hidden">
                         <div class="bg-gray-900 p-4 rounded-lg border border-purple-500/50 inline-block">
                             <p class="text-sm font-medium text-gray-400">Qmax Result</p>
-                            <p id="util_qmax_result" class="text-2xl font-bold text-purple-400 mt-1">-</p>
+                            <p id="util_qmax_result" class="text-2xl font-bold text-purple-400 mt-1 long-number">-</p>
                             <p class="text-sm text-gray-500">Mvar</p>
                         </div>
                         <p id="util_qmaxErrorMessage" class="mt-2 text-red-400 text-sm font-medium"></p>
@@ -555,12 +558,12 @@
                          <div class="flex flex-col sm:flex-row justify-center items-center gap-6">
                             <div class="result-box text-center">
                                 <p class="text-sm font-medium text-gray-400">Active Power (P)</p>
-                                <p id="util_p_result" class="text-3xl font-bold text-teal-400 mt-1">-</p>
+                                <p id="util_p_result" class="text-3xl font-bold text-teal-400 mt-1 long-number">-</p>
                                 <p class="text-sm text-gray-500">MW</p>
                             </div>
                             <div class="result-box text-center">
                                 <p class="text-sm font-medium text-gray-400">Reactive Power (Q)</p>
-                                <p id="util_q_result" class="text-3xl font-bold text-teal-400 mt-1">-</p>
+                                <p id="util_q_result" class="text-3xl font-bold text-teal-400 mt-1 long-number">-</p>
                                 <p class="text-sm text-gray-500">Mvar</p>
                             </div>
                         </div>
@@ -621,7 +624,7 @@
         const renderRatioInputs = () => {
             const container = document.getElementById('ratio_container');
             container.innerHTML = '';
-            const initialValue = (100 / numGenerators).toFixed(4);
+            const initialValue = (100 / numGenerators).toFixed(10);
             for (let i = 1; i <= numGenerators; i++) {
                 const isLast = (i === numGenerators);
                 container.innerHTML += `
@@ -651,7 +654,7 @@
                 container.innerHTML += `
                     <div class="result-box text-center p-4">
                         <p class="text-sm font-medium text-gray-400">Gen ${i} Input</p>
-                        <p id="p_in_result_${i}" class="text-2xl font-bold text-green-400">-</p>
+                        <p id="p_in_result_${i}" class="text-2xl font-bold text-green-400 long-number">-</p>
                         <p class="text-xs text-gray-500">MW</p>
                     </div>`;
             }
@@ -685,7 +688,7 @@
                 container.innerHTML += `
                     <div class="result-box text-center">
                         <p class="text-sm font-medium text-gray-400">Final PGen ${i} Input</p>
-                        <p id="p_in_final_result_${i}" class="text-3xl font-bold text-green-400 mt-1">-</p>
+                        <p id="p_in_final_result_${i}" class="text-3xl font-bold text-green-400 mt-1 long-number">-</p>
                         <p class="text-sm text-gray-500">MW</p>
                     </div>`;
             }
@@ -746,7 +749,7 @@
             }
             if (sum > 100) sum = 100;
             if(ratioInputs[numGenerators - 1]) {
-                ratioInputs[numGenerators - 1].value = (100 - sum).toFixed(4);
+                ratioInputs[numGenerators - 1].value = (100 - sum).toFixed(10);
             }
             updateAllAsymmetricalP();
         };
