@@ -113,6 +113,7 @@
             <nav class="flex justify-center -mb-px space-x-4" aria-label="Tabs">
                 <button class="tab-btn active" id="tab-multi">Multi-Generator</button>
                 <button class="tab-btn" id="tab-single">Single Generator</button>
+                <button class="tab-btn" id="tab-util">Utilities</button>
             </nav>
         </div>
 
@@ -328,34 +329,6 @@
                         <p id="finalErrorMessage" class="mt-4 text-red-400 text-sm font-medium text-center"></p>
                     </div>
                 </div>
-    
-                <!-- UTILITY: Qmax Calculator -->
-                <div class="card p-6">
-                    <h2 class="step-header">Utility: Qmax Calculator (per Generator)</h2>
-                    <p class="text-sm text-gray-400 mb-4">Calculate the Qmax value for a single generator based on the formula: Qmax = √(S² - P²).</p>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-                        <div>
-                            <label for="qmax_s" class="block text-sm font-medium text-gray-300 mb-1">Apparent Power (S) in MVA</label>
-                            <input type="number" id="qmax_s" class="input-field" placeholder="e.g., 222.2">
-                        </div>
-                        <div>
-                            <label for="qmax_p" class="block text-sm font-medium text-gray-300 mb-1">Active Power (P) in MW</label>
-                            <input type="number" id="qmax_p" class="input-field" placeholder="e.g., 200.0">
-                        </div>
-                    </div>
-                    <div class="flex items-center gap-4 mt-4">
-                        <button id="calculateQmaxBtn" class="btn btn-primary bg-purple-600 hover:bg-purple-700">Calculate Qmax</button>
-                        <button id="resetQmaxBtn" class="btn btn-secondary">Reset</button>
-                    </div>
-                    <div id="qmaxResultCard" class="mt-6 hidden">
-                        <div class="bg-gray-900 p-4 rounded-lg border border-purple-500/50 inline-block">
-                            <p class="text-sm font-medium text-gray-400">Qmax Result</p>
-                            <p id="qmax_result" class="text-2xl font-bold text-purple-400 mt-1">-</p>
-                            <p class="text-sm text-gray-500">Mvar</p>
-                        </div>
-                        <p id="qmaxErrorMessage" class="mt-2 text-red-400 text-sm font-medium"></p>
-                    </div>
-                </div>
             </main>
         </div>
 
@@ -527,30 +500,71 @@
                         <p id="sg_finalErrorMessage" class="mt-4 text-red-400 text-sm font-medium text-center"></p>
                     </div>
                 </div>
+            </main>
+        </div>
+
+        <!-- UTILITIES CALCULATOR CONTENT -->
+        <div id="utilCalc" class="calculator-content">
+             <main class="space-y-10">
+                <!-- UTILITY: Qmax Calculator -->
                 <div class="card p-6">
-                    <h2 class="step-header">Utility: Qmax Calculator</h2>
+                    <h2 class="step-header">Qmax Calculator</h2>
                     <p class="text-sm text-gray-400 mb-4">Calculate the Qmax value based on the formula: Qmax = √(S² - P²).</p>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                         <div>
-                            <label for="sg_qmax_s" class="block text-sm font-medium text-gray-300 mb-1">Apparent Power (S) in MVA</label>
-                            <input type="number" id="sg_qmax_s" class="input-field" placeholder="e.g., 222.2">
+                            <label for="util_qmax_s" class="block text-sm font-medium text-gray-300 mb-1">Apparent Power (S) in MVA</label>
+                            <input type="number" id="util_qmax_s" class="input-field" placeholder="e.g., 222.2">
                         </div>
                         <div>
-                            <label for="sg_qmax_p" class="block text-sm font-medium text-gray-300 mb-1">Active Power (P) in MW</label>
-                            <input type="number" id="sg_qmax_p" class="input-field" placeholder="e.g., 200.0">
+                            <label for="util_qmax_p" class="block text-sm font-medium text-gray-300 mb-1">Active Power (P) in MW</label>
+                            <input type="number" id="util_qmax_p" class="input-field" placeholder="e.g., 200.0">
                         </div>
                     </div>
                     <div class="flex items-center gap-4 mt-4">
-                        <button id="sg_calculateQmaxBtn" class="btn btn-primary bg-purple-600 hover:bg-purple-700">Calculate Qmax</button>
-                        <button id="sg_resetQmaxBtn" class="btn btn-secondary">Reset</button>
+                        <button id="util_calculateQmaxBtn" class="btn btn-primary bg-purple-600 hover:bg-purple-700">Calculate Qmax</button>
+                        <button id="util_resetQmaxBtn" class="btn btn-secondary">Reset</button>
                     </div>
-                    <div id="sg_qmaxResultCard" class="mt-6 hidden">
+                    <div id="util_qmaxResultCard" class="mt-6 hidden">
                         <div class="bg-gray-900 p-4 rounded-lg border border-purple-500/50 inline-block">
                             <p class="text-sm font-medium text-gray-400">Qmax Result</p>
-                            <p id="sg_qmax_result" class="text-2xl font-bold text-purple-400 mt-1">-</p>
+                            <p id="util_qmax_result" class="text-2xl font-bold text-purple-400 mt-1">-</p>
                             <p class="text-sm text-gray-500">Mvar</p>
                         </div>
-                        <p id="sg_qmaxErrorMessage" class="mt-2 text-red-400 text-sm font-medium"></p>
+                        <p id="util_qmaxErrorMessage" class="mt-2 text-red-400 text-sm font-medium"></p>
+                    </div>
+                </div>
+                 <!-- UTILITY: P & Q Calculator -->
+                <div class="card p-6">
+                    <h2 class="step-header">P & Q Calculator</h2>
+                    <p class="text-sm text-gray-400 mb-4">Calculate Active Power (P) and Reactive Power (Q) from Apparent Power (S) and Power Factor (PF).</p>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label for="util_pq_s" class="block text-sm font-medium text-gray-300 mb-1">Apparent Power (S) in MVA</label>
+                            <input type="number" id="util_pq_s" class="input-field" placeholder="e.g., 222.2">
+                        </div>
+                        <div>
+                            <label for="util_pq_pf" class="block text-sm font-medium text-gray-300 mb-1">Power Factor (PF)</label>
+                            <input type="number" id="util_pq_pf" class="input-field" placeholder="e.g., 0.9">
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-4 mt-4">
+                        <button id="util_calculatePQBtn" class="btn btn-primary bg-teal-600 hover:bg-teal-700">Calculate P & Q</button>
+                        <button id="util_resetPQBtn" class="btn btn-secondary">Reset</button>
+                    </div>
+                    <div id="util_pqResultCard" class="mt-6 hidden">
+                         <div class="flex flex-col sm:flex-row justify-center items-center gap-6">
+                            <div class="result-box text-center">
+                                <p class="text-sm font-medium text-gray-400">Active Power (P)</p>
+                                <p id="util_p_result" class="text-3xl font-bold text-teal-400 mt-1">-</p>
+                                <p class="text-sm text-gray-500">MW</p>
+                            </div>
+                            <div class="result-box text-center">
+                                <p class="text-sm font-medium text-gray-400">Reactive Power (Q)</p>
+                                <p id="util_q_result" class="text-3xl font-bold text-teal-400 mt-1">-</p>
+                                <p class="text-sm text-gray-500">Mvar</p>
+                            </div>
+                        </div>
+                        <p id="util_pqErrorMessage" class="mt-4 text-red-400 text-sm font-medium text-center"></p>
                     </div>
                 </div>
             </main>
@@ -585,21 +599,21 @@
         // --- Tab Switching Logic ---
         const tabMulti = document.getElementById('tab-multi');
         const tabSingle = document.getElementById('tab-single');
+        const tabUtil = document.getElementById('tab-util');
         const contentMulti = document.getElementById('multiGenCalc');
         const contentSingle = document.getElementById('singleGenCalc');
+        const contentUtil = document.getElementById('utilCalc');
 
-        tabMulti.addEventListener('click', () => {
-            tabMulti.classList.add('active');
-            tabSingle.classList.remove('active');
-            contentMulti.classList.add('active');
-            contentSingle.classList.remove('active');
-        });
-        tabSingle.addEventListener('click', () => {
-            tabSingle.classList.add('active');
-            tabMulti.classList.remove('active');
-            contentSingle.classList.add('active');
-            contentMulti.classList.remove('active');
-        });
+        const switchTab = (activeTab, activeContent) => {
+            [tabMulti, tabSingle, tabUtil].forEach(t => t.classList.remove('active'));
+            [contentMulti, contentSingle, contentUtil].forEach(c => c.classList.remove('active'));
+            activeTab.classList.add('active');
+            activeContent.classList.add('active');
+        };
+
+        tabMulti.addEventListener('click', () => switchTab(tabMulti, contentMulti));
+        tabSingle.addEventListener('click', () => switchTab(tabSingle, contentSingle));
+        tabUtil.addEventListener('click', () => switchTab(tabUtil, contentUtil));
         
         // --- MULTI-GENERATOR CALCULATOR LOGIC ---
 
@@ -888,9 +902,7 @@
             document.getElementById('global_p_target').dispatchEvent(new Event('input'));
             document.getElementById('num_generators').value = '2';
             initMultiGenUI();
-            ['pResultCard', 'qResultCard', 'finalResultCard', 'qmaxResultCard'].forEach(id => document.getElementById(id).classList.add('hidden'));
-            document.getElementById('qmax_s').value = '';
-            document.getElementById('qmax_p').value = '';
+            ['pResultCard', 'qResultCard', 'finalResultCard'].forEach(id => document.getElementById(id).classList.add('hidden'));
             window.scrollTo({ top: 0, behavior: 'smooth' });
         };
         document.getElementById('resetAllBtn').addEventListener('click', resetAllMultiGen);
@@ -937,25 +949,7 @@
             document.getElementById('v_in_G').value = '';
             document.getElementById('finalResultCard').classList.add('hidden');
         });
-        document.getElementById('calculateQmaxBtn').addEventListener('click', () => {
-            try {
-                const v = getValues(['qmax_s', 'qmax_p']);
-                if (v.qmax_s < Math.abs(v.qmax_p)) throw new Error("S must be >= |P|.");
-                const qmax = Math.sqrt(v.qmax_s*v.qmax_s - v.qmax_p*v.qmax_p);
-                document.getElementById('qmax_result').textContent = qmax.toFixed(10);
-                document.getElementById('qmaxErrorMessage').textContent = '';
-            } catch (e) {
-                document.getElementById('qmax_result').textContent = '-';
-                document.getElementById('qmaxErrorMessage').textContent = e.message;
-            }
-            document.getElementById('qmaxResultCard').classList.remove('hidden');
-        });
-        document.getElementById('resetQmaxBtn').addEventListener('click', () => {
-            document.getElementById('qmax_s').value = '';
-            document.getElementById('qmax_p').value = '';
-            document.getElementById('qmaxResultCard').classList.add('hidden');
-        });
-
+       
 
         // --- SINGLE GENERATOR LOGIC ---
         document.getElementById('sg_calculatePBtn').addEventListener('click', () => {
@@ -1025,30 +1019,55 @@
                 errorEl.textContent = e.message;
              }
         });
-        document.getElementById('sg_calculateQmaxBtn').addEventListener('click', () => {
-            try {
-                const v = getValues(['sg_qmax_s', 'sg_qmax_p']);
-                if (v.sg_qmax_s < Math.abs(v.sg_qmax_p)) throw new Error("S must be >= |P|.");
-                const qmax = Math.sqrt(v.sg_qmax_s*v.sg_qmax_s - v.sg_qmax_p*v.sg_qmax_p);
-                document.getElementById('sg_qmax_result').textContent = qmax.toFixed(10);
-                document.getElementById('sg_qmaxErrorMessage').textContent = '';
-            } catch (e) {
-                document.getElementById('sg_qmax_result').textContent = '-';
-                document.getElementById('sg_qmaxErrorMessage').textContent = e.message;
-            }
-            document.getElementById('sg_qmaxResultCard').classList.remove('hidden');
-        });
-        document.getElementById('sg_resetQmaxBtn').addEventListener('click', () => {
-            document.getElementById('sg_qmax_s').value = '';
-            document.getElementById('sg_qmax_p').value = '';
-            document.getElementById('sg_qmaxResultCard').classList.add('hidden');
-        });
-         document.getElementById('sg_resetAllBtn').addEventListener('click', () => {
+        document.getElementById('sg_resetAllBtn').addEventListener('click', () => {
             document.getElementById('sg_p_out_target_global').value = '';
             document.getElementById('sg_q_out_target_global').value = '';
-            ['sg_p_in_A', 'sg_p_out_A', 'sg_p_in_B', 'sg_p_out_B', 'sg_p_in_s2', 'sg_v_in_C', 'sg_q_out_C', 'sg_v_in_D', 'sg_q_out_D','sg_p_in_E', 'sg_v_in_E', 'sg_p_out_E', 'sg_q_out_E', 'sg_p_in_F', 'sg_p_out_F', 'sg_q_out_F', 'sg_v_in_G', 'sg_p_out_G', 'sg_q_out_G', 'sg_qmax_s', 'sg_qmax_p'].forEach(id => document.getElementById(id).value = '');
-            ['sg_pResultCard', 'sg_qResultCard', 'sg_finalResultCard', 'sg_qmaxResultCard'].forEach(id => document.getElementById(id).classList.add('hidden'));
+            ['sg_p_in_A', 'sg_p_out_A', 'sg_p_in_B', 'sg_p_out_B', 'sg_p_in_s2', 'sg_v_in_C', 'sg_q_out_C', 'sg_v_in_D', 'sg_q_out_D','sg_p_in_E', 'sg_v_in_E', 'sg_p_out_E', 'sg_q_out_E', 'sg_p_in_F', 'sg_p_out_F', 'sg_q_out_F', 'sg_v_in_G', 'sg_p_out_G', 'sg_q_out_G'].forEach(id => document.getElementById(id).value = '');
+            ['sg_pResultCard', 'sg_qResultCard', 'sg_finalResultCard'].forEach(id => document.getElementById(id).classList.add('hidden'));
             window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+
+        // --- UTILITIES LOGIC ---
+        document.getElementById('util_calculateQmaxBtn').addEventListener('click', () => {
+            try {
+                const v = getValues(['util_qmax_s', 'util_qmax_p']);
+                if (v.util_qmax_s < Math.abs(v.util_qmax_p)) throw new Error("S must be >= |P|.");
+                const qmax = Math.sqrt(v.util_qmax_s*v.util_qmax_s - v.util_qmax_p*v.util_qmax_p);
+                document.getElementById('util_qmax_result').textContent = qmax.toFixed(10);
+                document.getElementById('util_qmaxErrorMessage').textContent = '';
+            } catch (e) {
+                document.getElementById('util_qmax_result').textContent = '-';
+                document.getElementById('util_qmaxErrorMessage').textContent = e.message;
+            }
+            document.getElementById('util_qmaxResultCard').classList.remove('hidden');
+        });
+        document.getElementById('util_resetQmaxBtn').addEventListener('click', () => {
+            document.getElementById('util_qmax_s').value = '';
+            document.getElementById('util_qmax_p').value = '';
+            document.getElementById('util_qmaxResultCard').classList.add('hidden');
+        });
+        document.getElementById('util_calculatePQBtn').addEventListener('click', () => {
+            const resultCard = document.getElementById('util_pqResultCard');
+            const errorEl = document.getElementById('util_pqErrorMessage');
+            resultCard.classList.remove('hidden');
+            try {
+                const v = getValues(['util_pq_s', 'util_pq_pf']);
+                 if (v.util_pq_pf < -1 || v.util_pq_pf > 1) throw new Error("Power Factor (PF) must be between -1 and 1.");
+                const p = v.util_pq_s * v.util_pq_pf;
+                const q = Math.sqrt(v.util_pq_s*v.util_pq_s - p*p);
+                document.getElementById('util_p_result').textContent = p.toFixed(10);
+                document.getElementById('util_q_result').textContent = q.toFixed(10);
+                errorEl.textContent = '';
+            } catch (e) {
+                document.getElementById('util_p_result').textContent = '-';
+                document.getElementById('util_q_result').textContent = '-';
+                errorEl.textContent = e.message;
+            }
+        });
+        document.getElementById('util_resetPQBtn').addEventListener('click', () => {
+            document.getElementById('util_pq_s').value = '';
+            document.getElementById('util_pq_pf').value = '';
+            document.getElementById('util_pqResultCard').classList.add('hidden');
         });
 
         // Initial Page Load
