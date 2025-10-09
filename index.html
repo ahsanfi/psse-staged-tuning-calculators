@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale-1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Staged Tuning Calculators</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -570,6 +570,44 @@
                         <p id="util_pqErrorMessage" class="mt-4 text-red-400 text-sm font-medium text-center"></p>
                     </div>
                 </div>
+                <!-- UTILITY: Impedance Calculator -->
+                <div class="card p-6">
+                    <h2 class="step-header">Impedance (Z) and X/R Ratio Calculator</h2>
+                    <p class="text-sm text-gray-400 mb-4">Calculate Impedance (Z) and X/R Ratio from the real (R) and imaginary (X) components.</p>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label for="util_imp_r" class="block text-sm font-medium text-gray-300 mb-1">Resistance (R) in pu</label>
+                            <input type="number" id="util_imp_r" class="input-field" placeholder="e.g., 0.00213">
+                        </div>
+                        <div>
+                            <label for="util_imp_x" class="block text-sm font-medium text-gray-300 mb-1">Reactance (X) in pu</label>
+                            <input type="number" id="util_imp_x" class="input-field" placeholder="e.g., 0.11078">
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-4 mt-4">
+                        <button id="util_imp_calculateBtn" class="btn btn-primary bg-green-600 hover:bg-green-700">Calculate Z & X/R</button>
+                        <button id="util_imp_resetBtn" class="btn btn-secondary">Reset</button>
+                    </div>
+                    <div id="util_imp_resultCard" class="mt-6 hidden">
+                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div class="result-box text-center">
+                                <p class="text-sm font-medium text-gray-400">Impedance (Z)</p>
+                                <p id="util_imp_z_pu_result" class="text-2xl font-bold text-green-400 mt-1 long-number">-</p>
+                                <p class="text-sm text-gray-500">pu</p>
+                            </div>
+                             <div class="result-box text-center">
+                                <p class="text-sm font-medium text-gray-400">Impedance (Z)</p>
+                                <p id="util_imp_z_percent_result" class="text-2xl font-bold text-green-400 mt-1 long-number">-</p>
+                                <p class="text-sm text-gray-500">%</p>
+                            </div>
+                            <div class="result-box text-center">
+                                <p class="text-sm font-medium text-gray-400">X/R Ratio</p>
+                                <p id="util_imp_xr_result" class="text-2xl font-bold text-green-400 mt-1 long-number">-</p>
+                            </div>
+                        </div>
+                        <p id="util_imp_errorMessage" class="mt-4 text-red-400 text-sm font-medium text-center"></p>
+                    </div>
+                </div>
             </main>
         </div>
     </div>
@@ -1071,6 +1109,34 @@
             document.getElementById('util_pq_s').value = '';
             document.getElementById('util_pq_pf').value = '';
             document.getElementById('util_pqResultCard').classList.add('hidden');
+        });
+        document.getElementById('util_imp_calculateBtn').addEventListener('click', () => {
+            const resultCard = document.getElementById('util_imp_resultCard');
+            const errorEl = document.getElementById('util_imp_errorMessage');
+            resultCard.classList.remove('hidden');
+            try {
+                const v = getValues(['util_imp_r', 'util_imp_x']);
+                if (Math.abs(v.util_imp_r) < 1e-12) throw new Error("Resistance (R) cannot be zero for X/R calculation.");
+                
+                const z_pu = Math.sqrt(v.util_imp_r * v.util_imp_r + v.util_imp_x * v.util_imp_x);
+                const z_percent = z_pu * 100;
+                const xr_ratio = v.util_imp_x / v.util_imp_r;
+
+                document.getElementById('util_imp_z_pu_result').textContent = z_pu.toFixed(10);
+                document.getElementById('util_imp_z_percent_result').textContent = z_percent.toFixed(2);
+                document.getElementById('util_imp_xr_result').textContent = xr_ratio.toFixed(2);
+                errorEl.textContent = '';
+            } catch (e) {
+                document.getElementById('util_imp_z_pu_result').textContent = '-';
+                document.getElementById('util_imp_z_percent_result').textContent = '-';
+                document.getElementById('util_imp_xr_result').textContent = '-';
+                errorEl.textContent = e.message;
+            }
+        });
+        document.getElementById('util_imp_resetBtn').addEventListener('click', () => {
+            document.getElementById('util_imp_r').value = '';
+            document.getElementById('util_imp_x').value = '';
+            document.getElementById('util_imp_resultCard').classList.add('hidden');
         });
 
         // Initial Page Load
