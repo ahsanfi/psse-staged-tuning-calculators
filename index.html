@@ -115,7 +115,7 @@
             <nav class="flex flex-wrap justify-center -mb-px space-x-4" aria-label="Tabs">
                 <button class="tab-btn active" id="tab-multi">Multi-Generator</button>
                 <button class="tab-btn" id="tab-single">Single Generator</button>
-                <button class="tab-btn" id="tab-psac">PSCAD PQcmd</button>
+                <button class="tab-btn" id="tab-psac">PSCAD Tuning</button>
                 <button class="tab-btn" id="tab-util">Utilities</button>
             </nav>
         </div>
@@ -582,6 +582,50 @@
                                     <p class="text-sm text-gray-500">(unitless / pu)</p>
                                  </div>
                                  <p id="psac_qErrorMessage" class="mt-4 text-red-400 text-sm font-medium text-center"></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card p-6">
+                    <h2 class="step-header text-purple-400">Vref Tuning</h2>
+                    <p class="text-sm text-gray-400 mb-6">Independent tuning for Voltage Reference (Vref). Enter two simulation points (Vref vs POI Q) to estimate the Vref for your target.</p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="space-y-6">
+                            <div>
+                                <label for="psac_vref_target" class="block text-sm font-medium text-gray-300 mb-2">🎯 **Target POI Q Output (Mvar)**</label>
+                                <input type="number" id="psac_vref_target" class="input-field" placeholder="e.g., 20.0">
+                            </div>
+                            <div class="space-y-4">
+                                <h3 class="font-semibold text-white">Data from 2 Simulations:</h3>
+                                <div class="bg-gray-900 p-4 rounded-lg border border-gray-700">
+                                    <p class="font-medium text-purple-400 mb-2">Simulation A</p>
+                                    <label class="text-xs text-gray-400">Vref Input (pu)</label>
+                                    <input type="number" id="psac_vref_in_A" class="input-field mt-1" placeholder="e.g., 1.02">
+                                    <label class="text-xs text-gray-400 mt-2 block">POI Q Output (Mvar)</label>
+                                    <input type="number" id="psac_vref_q_out_A" class="input-field mt-1" placeholder="Resulting Q Output">
+                                </div>
+                                <div class="bg-gray-900 p-4 rounded-lg border border-gray-700">
+                                    <p class="font-medium text-purple-400 mb-2">Simulation B</p>
+                                    <label class="text-xs text-gray-400">Vref Input (pu)</label>
+                                    <input type="number" id="psac_vref_in_B" class="input-field mt-1" placeholder="e.g., 1.04">
+                                    <label class="text-xs text-gray-400 mt-2 block">POI Q Output (Mvar)</label>
+                                    <input type="number" id="psac_vref_q_out_B" class="input-field mt-1" placeholder="Resulting Q Output">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex flex-col">
+                             <div class="space-y-4">
+                                <button id="psac_calcVrefBtn" class="btn btn-primary w-full bg-purple-600 hover:bg-purple-700">Calculate Vref</button>
+                                <button id="psac_resetVrefBtn" class="btn btn-secondary w-full">Reset Vref Tuning</button>
+                            </div>
+                            <div id="psac_vrefResultCard" class="mt-6 p-6 flex-grow flex flex-col justify-center items-center bg-gray-900 rounded-lg border border-gray-700 hidden">
+                                 <h3 class="font-semibold text-white mb-3 text-center">✅ Estimated Vref Input:</h3>
+                                 <div class="result-box text-center">
+                                    <p id="psac_vref_result" class="text-3xl font-bold text-purple-400 long-number">-</p>
+                                    <p class="text-sm text-gray-500">(pu)</p>
+                                 </div>
+                                 <p id="psac_vrefErrorMessage" class="mt-4 text-red-400 text-sm font-medium text-center"></p>
                             </div>
                         </div>
                     </div>
@@ -1193,6 +1237,28 @@
         document.getElementById('psac_resetQBtn').addEventListener('click', () => {
             ['psac_q_target', 'psac_q_cmd_A', 'psac_q_out_A', 'psac_q_cmd_B', 'psac_q_out_B'].forEach(id => document.getElementById(id).value = '');
             document.getElementById('psac_qResultCard').classList.add('hidden');
+        });
+        
+        // Vref Command Logic (NEW)
+        document.getElementById('psac_calcVrefBtn').addEventListener('click', () => {
+             const resultCard = document.getElementById('psac_vrefResultCard');
+             const errorEl = document.getElementById('psac_vrefErrorMessage');
+             resultCard.classList.remove('hidden');
+             try {
+                 const v = getValues(['psac_vref_target', 'psac_vref_in_A', 'psac_vref_q_out_A', 'psac_vref_in_B', 'psac_vref_q_out_B']);
+                 // Interpolation: x_target = x1 + (y_target - y1) * (x2 - x1) / (y2 - y1)
+                 // y = Q Output, x = Vref Input
+                 const vref_result = interpolate(v.psac_vref_target, v.psac_vref_in_A, v.psac_vref_q_out_A, v.psac_vref_in_B, v.psac_vref_q_out_B);
+                 document.getElementById('psac_vref_result').textContent = vref_result.toFixed(10);
+                 errorEl.textContent = '';
+             } catch (e) {
+                 document.getElementById('psac_vref_result').textContent = '-';
+                 errorEl.textContent = e.message;
+             }
+        });
+        document.getElementById('psac_resetVrefBtn').addEventListener('click', () => {
+            ['psac_vref_target', 'psac_vref_in_A', 'psac_vref_q_out_A', 'psac_vref_in_B', 'psac_vref_q_out_B'].forEach(id => document.getElementById(id).value = '');
+            document.getElementById('psac_vrefResultCard').classList.add('hidden');
         });
 
         // --- UTILITIES LOGIC ---
